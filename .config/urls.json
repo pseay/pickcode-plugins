@@ -1,0 +1,5 @@
+{
+    "prod": "https://api.app.pickcode.io",
+    "dev": "https://api.dev.pickcode.io",
+    "local": "http://localhost:9000"
+}
