@@ -1,12 +1,12 @@
 {
     "extends": "./tsconfig.json",
     "compilerOptions": {
-        "outDir": "dist/implementations/",
-        "rootDir": "src",
+        "outDir": "public/implementations/",
+        "rootDir": "src/plugins",
         "declaration": false,
         "sourceMap": false
     },
-    "include": ["src/plugins/*/implementation.ts"],
+    "include": ["src/plugins/**/implementation.ts"],
     "exclude": [
         "node_modules",
         "src/**/*.test.ts",

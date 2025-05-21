@@ -6,11 +6,12 @@
     "scripts": {
         "init-plugin": "tsx .scripts/init-module.ts",
         "update-plugin": "tsx .scripts/update-plugin.ts",
-        "start": "vite",
+        "start": "concurrently \"vite\" \"tsc --project tsconfig.plugin-implementations.json --watch\"",
         "build:site": "vite build",
         "build": "tsc --project tsconfig.plugin-implementations.json"
     },
     "dependencies": {
+        "@babel/plugin-proposal-class-properties": "^7.18.6",
         "@babel/plugin-proposal-decorators": "^7.25.9",
         "@tailwindcss/vite": "^4.1.5",
         "@types/node": "^22.14.0",
@@ -31,6 +32,7 @@
         "@types/yargs": "^17.0.33",
         "@vitejs/plugin-react": "^4.3.4",
         "axios": "^1.9.0",
+        "concurrently": "^9.1.2",
         "eslint": "^9.21.0",
         "eslint-plugin-react-hooks": "^5.1.0",
         "eslint-plugin-react-refresh": "^0.4.19",
