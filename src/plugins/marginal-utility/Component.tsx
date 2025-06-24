@@ -4,9 +4,10 @@ import State from "./state";
 
 const Component = observer(({ state }: { state: State | undefined }) => {
     const canvasRef = useRef<HTMLCanvasElement>(null);
-    const animationRef = useRef<number>(0);
+    // const animationRef = useRef<number>(0);
 
     useEffect(() => {
+        console.log("Used effect", {state: state});
         const canvas = canvasRef.current;
         if (!canvas) return;
         const ctx = canvas.getContext("2d");
@@ -25,12 +26,11 @@ const Component = observer(({ state }: { state: State | undefined }) => {
             const y = canvas.height / 2;
             ctx.fillText("Utils: " + state?.utils, x - 15, y - 20);
 
-            animationRef.current = requestAnimationFrame(draw);
+            // animationRef.current = requestAnimationFrame(draw);
         };
 
         draw();
-
-        return () => cancelAnimationFrame(animationRef.current);
+        // return () => cancelAnimationFrame(animationRef.current);
     }, [state?.utils]);
 
     return (
