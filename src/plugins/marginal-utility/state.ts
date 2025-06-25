@@ -3,27 +3,25 @@ import { Message } from "./messages";
 
 export class State {
     @observable
-    accessor slices: number = 0;
-    accessor utils: number = 0;
+    accessor choices: string[] = [];
+    @observable
+    accessor error: string | null = null;
 
     public init = () => {};
 
     @action
-    public onMessage = (emptyOrEat: Message) => {
-        console.log("Got message:", emptyOrEat)
-        console.log("Starting utils:", this.utils);
-        this.utils += 5;
-        console.log("Utils after message:", this.utils);
-        // switch (emptyOrEat) {
-        //     case Message.EmptyStomach:
-        //         this.slices = 0;
-        //         this.utils = 0;
-        //         break;
-        //     case Message.EatSlice:
-        //         this.slices += 1;
-        //         this.utils += 5 - this.slices;
-        //         break;
-        // }
+    public onMessage = (message: Message) => {
+        switch (message) {
+            case "apple":
+                this.choices.push("apple")
+                return true;
+            case "banana":
+                this.choices.push("banana")
+                return true;
+            default:
+                this.error = `Your input (${message}) is not a valid choice`;
+                return false;
+        }
     };
 }
 
