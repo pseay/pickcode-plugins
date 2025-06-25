@@ -82,19 +82,13 @@ const Component = observer(({ state }: { state: State | undefined }) => {
             const y = basketY + 20 + (row * 35);
 
             if (choice === 'apple') {
-                ctx.fillStyle = appleColor;
-                ctx.beginPath();
-                ctx.arc(x + 15, y + 15, 12, 0, 2 * Math.PI);
-                ctx.fill();
-                ctx.fillStyle = '#228B22';
-                ctx.fillRect(x + 12, y + 5, 6, 8);
+                ctx.font = '28px Arial';
+                ctx.textAlign = 'left';
+                ctx.fillText('🍎', x + 5, y + 28);
             } else if (choice === 'banana') {
-                ctx.fillStyle = bananaColor;
-                ctx.beginPath();
-                ctx.ellipse(x + 15, y + 15, 15, 8, Math.PI / 6, 0, 2 * Math.PI);
-                ctx.fill();
-                ctx.fillStyle = '#DAA520';
-                ctx.fillRect(x + 5, y + 8, 3, 15);
+                ctx.font = '28px Arial';
+                ctx.textAlign = 'left';
+                ctx.fillText('🍌', x + 5, y + 28);
             }
         });
 
@@ -102,7 +96,7 @@ const Component = observer(({ state }: { state: State | undefined }) => {
         ctx.fillStyle = textColor;
         ctx.font = '18px Arial';
         ctx.textAlign = 'center';
-        ctx.fillText(`Total Cost: $${totalCost}`, canvas.width / 2, canvas.height - 20);
+        ctx.fillText(`Total Cost: $${totalCost}. Budget: $7.`, canvas.width / 2, canvas.height - 20);
     }, [state, [...choices]]);
 
     useEffect(() => {
