@@ -2,26 +2,33 @@ import { observer } from "mobx-react-lite";
 import React, { useState, useEffect, useMemo, useRef } from "react";
 import State from "./state";
 
-// InfoCard sub-component is correct and does not need changes.
+// InfoCard is updated to support a separate "pulsing" state for the shrink animation.
 const InfoCard = ({
     title,
     emoji,
     data,
     isHighlighted,
+    isPulsing,
     isCorrect,
 }: {
     title: string;
     emoji: string;
     data: { label: string; value: string | number }[];
     isHighlighted: boolean;
+    isPulsing: boolean;
     isCorrect: boolean | null;
 }) => {
     const classNames = [
         "bg-white p-6 rounded-lg shadow-md sm:w-72 flex-shrink-0 transition-all duration-300",
     ];
 
+    // The "pulse" or shrink effect is now controlled by isPulsing.
+    if (isPulsing) {
+        classNames.push("transform scale-95");
+    }
+
+    // The border and background highlight is still controlled by isHighlighted.
     if (isHighlighted) {
-        classNames.push("transform scale-105");
         if (isCorrect === true) {
             classNames.push("border-4 border-green-500 bg-green-50");
         } else if (isCorrect === false) {
@@ -58,13 +65,14 @@ const InfoCard = ({
 
 const Component = observer(({ state }: { state: State | undefined }) => {
     const [visibleChoices, setVisibleChoices] = useState<string[]>([]);
-    const [currentItem, setCurrentItem] = useState<{
+    // This state now controls the 2-second border highlight.
+    const [highlightedItem, setHighlightedItem] = useState<{
         choice: string;
         isCorrect: boolean;
     } | null>(null);
+    // This new state controls the short 0.5-second pulse animation.
+    const [pulsingChoice, setPulsingChoice] = useState<string | null>(null);
 
-    // The useRef "lock". This is the key to fixing the race condition.
-    // Changing a ref does NOT cause a re-render.
     const isAnimating = useRef(false);
 
     const incomingChoices = state?.choices || [];
@@ -99,9 +107,7 @@ const Component = observer(({ state }: { state: State | undefined }) => {
     }, [visibleChoices]);
 
     useEffect(() => {
-        // Define the entire animation sequence as a self-contained async function.
         const processNextChoice = async () => {
-            // If another process somehow started, or if we're done, exit.
             if (incomingChoices.length <= visibleChoices.length) {
                 isAnimating.current = false;
                 return;
@@ -113,45 +119,42 @@ const Component = observer(({ state }: { state: State | undefined }) => {
                     ? appleMUP >= bananaMUP
                     : bananaMUP >= appleMUP;
 
-            // 1. HIGHLIGHT: This state update will cause a re-render, but the lock will prevent
-            // the effect from starting a new animation.
-            setCurrentItem({ choice: nextChoice, isCorrect });
+            // 1. HIGHLIGHT & PULSE: Set states to trigger UI changes.
+            setHighlightedItem({ choice: nextChoice, isCorrect });
+            setVisibleChoices((prev) => [...prev, nextChoice]);
+            setPulsingChoice(nextChoice);
 
-            // 2. WAIT: Pause execution for the animation duration.
+            // 2. WAIT & REMOVE PULSE: After 0.5s, remove the pulse effect.
+            // This runs in parallel to the main 2s wait.
+            setTimeout(() => setPulsingChoice(null), 500);
+
+            // Wait for the full animation duration.
             await new Promise((resolve) => setTimeout(resolve, 2000));
 
-            // 3. UPDATE BASKET: This state update will cause another re-render.
-            setVisibleChoices((prev) => [...prev, nextChoice]);
-            setCurrentItem(null);
+            // 3. UPDATE BASKET: Add the item and clear the border highlight.
+            setHighlightedItem(null);
 
-            // 4. UNLOCK: Release the lock so the next animation can start.
+            // 4. UNLOCK: Allow the next animation to start.
             isAnimating.current = false;
         };
 
         // --- ENTRY POINT FOR THE EFFECT ---
-
-        // Handle simulation reset
         if (incomingChoices.length === 0 && visibleChoices.length > 0) {
-            isAnimating.current = false; // Ensure lock is released on reset
+            isAnimating.current = false;
             setVisibleChoices([]);
-            setCurrentItem(null);
+            setHighlightedItem(null);
+            setPulsingChoice(null); // Clear pulse state on reset
             return;
         }
 
-        // Check if there is new work to do AND if we are not already animating.
         if (
             !isAnimating.current &&
             incomingChoices.length > visibleChoices.length
         ) {
-            // LOCK: Set the ref to true immediately.
             isAnimating.current = true;
-            // Kick off the animation.
             processNextChoice();
         }
-
-        // This dependency array is now stable. It will re-run the effect when the number of
-        // incoming or visible choices changes. The `isAnimating` ref lock handles the rest.
-    }, [incomingChoices.length, visibleChoices.length, appleMUP, bananaMUP]);
+    }, [incomingChoices.length, visibleChoices.length, isAnimating.current, appleMUP, bananaMUP]);
 
     const appleData = [
         { label: "Price", value: `$2` },
@@ -177,10 +180,11 @@ const Component = observer(({ state }: { state: State | undefined }) => {
                         title={"Apple #" + (appleCount + 1)}
                         emoji="🍎"
                         data={appleData}
-                        isHighlighted={ currentItem?.choice === "apple" }
+                        isHighlighted={highlightedItem?.choice === "apple"}
+                        isPulsing={pulsingChoice === "apple"}
                         isCorrect={
-                            currentItem?.choice === "apple"
-                                ? currentItem.isCorrect
+                            highlightedItem?.choice === "apple"
+                                ? highlightedItem.isCorrect
                                 : null
                         }
                     />
@@ -188,10 +192,11 @@ const Component = observer(({ state }: { state: State | undefined }) => {
                         title={"Banana #" + (bananaCount + 1)}
                         emoji="🍌"
                         data={bananaData}
-                        isHighlighted={ currentItem?.choice === "banana" }
+                        isHighlighted={highlightedItem?.choice === "banana"}
+                        isPulsing={pulsingChoice === "banana"}
                         isCorrect={
-                            currentItem?.choice === "banana"
-                                ? currentItem.isCorrect
+                            highlightedItem?.choice === "banana"
+                                ? highlightedItem.isCorrect
                                 : null
                         }
                     />
