@@ -128,12 +128,23 @@ const Component = observer(({ state }: { state: State | undefined }) => {
             });
 
             // Draw helper lines if requested
-            if (state?.helper && state?.lines.length >= 2) {
-                // Calculate equilibrium point
-                const equilibrium = calculateIntersection(
-                    state.lines[0],
-                    state.lines[1]
-                );
+            if (
+                (state?.helper && state?.lines.length >= 2) ||
+                (state?.helper && state?.lines.length == 0)
+            ) {
+                let equilibrium;
+
+                if (state?.helper && state?.lines.length == 0) {
+                    // When no lines exist, use default equilibrium at (0,0)
+                    equilibrium = { x: 0, y: 0 };
+                    console.log("Equilibrium point is 0");
+                } else {
+                    // Calculate equilibrium point when lines exist
+                    equilibrium = calculateIntersection(
+                        state.lines[0],
+                        state.lines[1]
+                    );
+                }
 
                 if (equilibrium) {
                     console.log("Equilibrium point:", equilibrium);
