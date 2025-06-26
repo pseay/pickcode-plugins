@@ -166,12 +166,8 @@ const Component = observer(({ state }: { state: State | undefined }) => {
 
     return (
         <div className="w-full min-h-full flex flex-col items-center justify-center bg-gradient-to-b from-blue-50 to-green-50 p-4 sm:p-6">
-            <div className="w-full max-w-2xl mx-auto flex flex-col items-center space-y-6">
-                <h2 className="text-3xl md:text-2xl font-bold text-gray-700 text-center">
-                    Fruit Picking
-                </h2>
-
-                <div className="flex md:flex-row gap-6 md:gap-8 w-full justify-center">
+            <div className="w-full max-w-2xl mx-auto flex flex-col items-center space-y-2">
+                <div className="flex flex-row gap-6 w-full justify-center">
                     <InfoCard
                         title={"Apple #" + (appleCount + 1)}
                         emoji="🍎"
@@ -198,7 +194,7 @@ const Component = observer(({ state }: { state: State | undefined }) => {
                     />
                 </div>
 
-                <div className="w-full max-w-2xl bg-white p-6 rounded-lg shadow-md">
+                <div className="w-full max-w-2xl bg-white p-4 rounded-lg shadow-md">
                     <p className="text-xl text-gray-700 font-semibold bg-white/70 px-4 pb-2 rounded-lg">
                         Basket Cost: ${totalCost}
                         <span className="text-gray-500 font-normal">
