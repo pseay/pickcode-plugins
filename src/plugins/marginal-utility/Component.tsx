@@ -21,19 +21,17 @@ const InfoCard = ({
     ];
 
     if (isHighlighted) {
-        // The image shows a light yellow background for correct, and a light red for incorrect.
-        // And a green/red border.
         classNames.push("transform scale-105");
         if (isCorrect === true) {
             classNames.push("border-4 border-green-500 bg-green-50");
         } else if (isCorrect === false) {
-            classNames.push("border-4 border-red-500 bg-red-50");
+            classNames.push("border-dashed border-4 border-red-500 bg-red-50");
         }
     }
 
     return (
         <div className={classNames.join(" ")}>
-            <h3 className="text-2xl font-semibold mb-4 flex items-center gap-2 text-gray-800">
+            <h3 className="text-1xl font-semibold mb-2 flex items-center gap-1 text-gray-800">
                 <span>{emoji}</span>
                 <span>{title}</span>
             </h3>
@@ -169,12 +167,12 @@ const Component = observer(({ state }: { state: State | undefined }) => {
 
     return (
         <div className="w-full min-h-full flex flex-col items-center justify-center bg-gradient-to-b from-blue-50 to-green-50 p-4 sm:p-6">
-            <div className="w-full max-w-4xl mx-auto flex flex-col items-center space-y-6">
-                <h2 className="text-3xl md:text-4xl font-bold text-gray-700 text-center">
-                    Marginal Utility Maximization
+            <div className="w-full max-w-2xl mx-auto flex flex-col items-center space-y-6">
+                <h2 className="text-3xl md:text-2xl font-bold text-gray-700 text-center">
+                    Fruit Picking
                 </h2>
 
-                <div className="flex flex-col md:flex-row gap-6 md:gap-8 w-full justify-center">
+                <div className="flex md:flex-row gap-6 md:gap-8 w-full justify-center">
                     <InfoCard
                         title={"Apple #" + (appleCount + 1)}
                         emoji="🍎"
@@ -200,9 +198,13 @@ const Component = observer(({ state }: { state: State | undefined }) => {
                 </div>
 
                 <div className="w-full max-w-2xl bg-white p-6 rounded-lg shadow-md">
-                    <h3 className="text-2xl font-semibold mb-4 text-center text-gray-800">
-                        Shopping Basket
-                    </h3>
+                    <p className="text-xl text-gray-700 font-semibold bg-white/70 px-4 pb-2 rounded-lg">
+                        Basket Cost: ${totalCost}
+                        <span className="text-gray-500 font-normal">
+                            {" "}
+                            / Budget: $7
+                        </span>
+                    </p>
                     <div className="flex flex-wrap gap-3 justify-center items-center p-4 min-h-[6rem] rounded-lg bg-yellow-50 border-2 border-dashed border-yellow-300">
                         {visibleChoices.length > 0 ? (
                             visibleChoices.map((choice, index) => (
@@ -217,14 +219,6 @@ const Component = observer(({ state }: { state: State | undefined }) => {
                         )}
                     </div>
                 </div>
-
-                <p className="text-xl text-gray-700 font-semibold bg-white/70 backdrop-blur-sm px-4 py-2 rounded-lg shadow">
-                    Total Cost: ${totalCost}
-                    <span className="text-gray-500 font-normal">
-                        {" "}
-                        / Budget: $7
-                    </span>
-                </p>
             </div>
         </div>
     );
