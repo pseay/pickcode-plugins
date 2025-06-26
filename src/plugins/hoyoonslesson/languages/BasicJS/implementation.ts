@@ -8,16 +8,16 @@ const createExports = (
         drawLine: (line: Line) => sendMessage(line), //sendMessage will send the userwritten function to state.ts
 
         // Simple functions that shift existing lines
-        addCoconuts: (amount: number) => {
+        addSupply: (amount: number) => {
             // Shift supply curve (line 0) to the right
             sendMessage({ type: "shift", lineIndex: 0, amount: amount });
-            console.log("addCoconuts", amount);
+            console.log("addSupply", amount);
         },
 
-        addPeople: (amount: number) => {
+        addDemand: (amount: number) => {
             // Shift demand curve (line 1) to the right
             sendMessage({ type: "shift", lineIndex: 1, amount: amount });
-            console.log("addPeople", amount);
+            console.log("addDemand", amount);
         },
 
         addDrought: (severity: number) => {
