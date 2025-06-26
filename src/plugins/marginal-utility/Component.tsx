@@ -2,7 +2,6 @@ import { observer } from "mobx-react-lite";
 import React, { useState, useEffect, useMemo, useRef } from "react";
 import State from "./state";
 
-// InfoCard is updated to support a separate "pulsing" state for the shrink animation.
 const InfoCard = ({
     title,
     emoji,
@@ -22,12 +21,12 @@ const InfoCard = ({
         "bg-white p-6 rounded-lg shadow-md sm:w-72 flex-shrink-0 transition-all duration-300",
     ];
 
-    // The "pulse" or shrink effect is now controlled by isPulsing.
+    // Make it smaller during the pulsing period.
     if (isPulsing) {
         classNames.push("transform scale-95");
     }
 
-    // The border and background highlight is still controlled by isHighlighted.
+    // Highlight it and border it solid green or dashed red if depending on correctness.
     if (isHighlighted) {
         if (isCorrect === true) {
             classNames.push("border-4 border-green-500 bg-green-50");
@@ -65,12 +64,10 @@ const InfoCard = ({
 
 const Component = observer(({ state }: { state: State | undefined }) => {
     const [visibleChoices, setVisibleChoices] = useState<string[]>([]);
-    // This state now controls the 2-second border highlight.
     const [highlightedItem, setHighlightedItem] = useState<{
         choice: string;
         isCorrect: boolean;
     } | null>(null);
-    // This new state controls the short 0.5-second pulse animation.
     const [pulsingChoice, setPulsingChoice] = useState<string | null>(null);
 
     const isAnimating = useRef(false);
@@ -108,45 +105,44 @@ const Component = observer(({ state }: { state: State | undefined }) => {
 
     useEffect(() => {
         const processNextChoice = async () => {
+            // See if there are choices to add.
             if (incomingChoices.length <= visibleChoices.length) {
                 isAnimating.current = false;
                 return;
             }
 
+            // Get choice and correctness.
             const nextChoice = incomingChoices[visibleChoices.length];
             const isCorrect =
                 nextChoice === "apple"
                     ? appleMUP >= bananaMUP
                     : bananaMUP >= appleMUP;
 
-            // 1. HIGHLIGHT & PULSE: Set states to trigger UI changes.
+            // Highlight it, pulse it, and show the item in the basket.
             setHighlightedItem({ choice: nextChoice, isCorrect });
             setVisibleChoices((prev) => [...prev, nextChoice]);
             setPulsingChoice(nextChoice);
 
-            // 2. WAIT & REMOVE PULSE: After 0.5s, remove the pulse effect.
-            // This runs in parallel to the main 2s wait.
+            // Have a 2.5 second wait, with 0.5 seconds pulse.
             setTimeout(() => setPulsingChoice(null), 500);
-
-            // Wait for the full animation duration.
             await new Promise((resolve) => setTimeout(resolve, 2000));
 
-            // 3. UPDATE BASKET: Add the item and clear the border highlight.
+            // Unhighlight and end the animation for the next one.
             setHighlightedItem(null);
 
-            // 4. UNLOCK: Allow the next animation to start.
             isAnimating.current = false;
         };
 
-        // --- ENTRY POINT FOR THE EFFECT ---
+        // Reset.
         if (incomingChoices.length === 0 && visibleChoices.length > 0) {
             isAnimating.current = false;
             setVisibleChoices([]);
             setHighlightedItem(null);
-            setPulsingChoice(null); // Clear pulse state on reset
+            setPulsingChoice(null); 
             return;
         }
 
+        // Check whether it should process the next choice.
         if (
             !isAnimating.current &&
             incomingChoices.length > visibleChoices.length
