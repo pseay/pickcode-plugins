@@ -1,158 +1,94 @@
 import { observer } from "mobx-react-lite";
-import React, { useState, useRef, useEffect, useCallback } from 'react';
+import React from 'react';
 import State from "./state";
 
+// A small sub-component for the info cards to keep the main component clean.
+const InfoCard = ({ title, emoji, data }: { title: string, emoji: string, data: { label: string, value: string | number }[] }) => (
+    <div className="bg-white p-6 rounded-lg shadow-md sm:w-72 flex-shrink-0">
+        <h3 className="text-2xl font-semibold mb-4 flex items-center gap-2 text-gray-800">
+            <span>{emoji}</span>
+            <span>{title}</span>
+        </h3>
+        <table className="w-full text-left">
+            <tbody>
+                {data.map(({ label, value }, index) => (
+                    <tr key={index} className="border-b last:border-b-0 border-gray-100">
+                        <td className="py-2 pr-2 text-gray-600">{label}:</td>
+                        <td className="py-2 pl-2 font-medium text-gray-800">{value}</td>
+                    </tr>
+                ))}
+            </tbody>
+        </table>
+    </div>
+);
+
 const Component = observer(({ state }: { state: State | undefined }) => {
-    const canvasRef = useRef<HTMLCanvasElement>(null);
-    const containerRef = useRef<HTMLDivElement>(null);
+    // Calculate all needed values from the state object.
     const choices = [...(state?.choices || [])];
+    const appleCount = choices.filter(c => c === "apple").length;
+    const bananaCount = choices.filter(c => c === "banana").length;
+    const applePrice = 2;
+    const bananaPrice = 1;
+    const appleMU = 30 - (10 * appleCount);
+    const bananaMU = 20 - (5 * bananaCount);
+    const appleMUP = (appleMU / applePrice).toFixed(1);
+    const bananaMUP = (bananaMU / bananaPrice).toFixed(1);
+    const totalCost = appleCount * applePrice + bananaCount * bananaPrice;
 
-    // Define the base dimensions for the drawing logic. All drawing will be relative to this.
-    const baseWidth = 600;
-    const baseHeight = 400;
+    const appleData = [
+        { label: "Price", value: `$${applePrice}` },
+        { label: "Marginal Utility", value: appleMU },
+        { label: "MU/Price Ratio", value: appleMUP },
+        { label: "Quantity", value: appleCount }
+    ];
 
-    // 2. State to hold the calculated, responsive size of the canvas.
-    const [size, setSize] = useState({ width: baseWidth, height: baseHeight });
-
-    // 3. The draw function is now resolution-independent.
-    const draw = useCallback((ctx: CanvasRenderingContext2D, canvas: HTMLCanvasElement) => {
-        // If state is not available, do nothing.
-        if (!state) return;
-
-        // Calculate the scale factor based on the current canvas size vs. the base size.
-        const scale = canvas.width / baseWidth;
-
-        // Calculate all needed values from the state object.
-        const appleCount = choices.filter(c => c == "apple").length;
-        const bananaCount = choices.filter(c => c == "banana").length;
-        const applePrice = 2;
-        const bananaPrice = 1;
-        const appleMU = 30 - (10 * appleCount);
-        const bananaMU = 20 - (5 * bananaCount);
-        const appleMUP = appleMU / applePrice;
-        const bananaMUP = bananaMU / bananaPrice;
-        const totalCost = appleCount * applePrice + bananaCount * bananaPrice;
-
-        // Clear canvas
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-        // Set up colors
-        const basketColor = '#8B4513';
-        const appleColor = '#FF6B6B';
-        const bananaColor = '#FFE66D';
-        const textColor = '#333';
-
-        // Draw title (scaled font and position)
-        ctx.fillStyle = textColor;
-        ctx.font = `bold ${24 * scale}px Arial`;
-        ctx.textAlign = 'center';
-        ctx.fillText('Marginal Utility Maximization', canvas.width / 2, 40 * scale);
-
-        // Draw price and utility information (scaled font and positions)
-        ctx.font = `${18 * scale}px Arial`;
-        ctx.textAlign = 'left';
-
-        // Apple info
-        ctx.fillStyle = appleColor;
-        ctx.fillText('🍎 Apples', 50 * scale, 80 * scale);
-        ctx.fillStyle = textColor;
-        ctx.fillText(`Price: $${applePrice}`, 50 * scale, 105 * scale);
-        ctx.fillText(`Marginal Utility: ${appleMU}`, 50 * scale, 125 * scale);
-        ctx.fillText(`MU/P Ratio: ${appleMUP.toFixed(1)}`, 50 * scale, 145 * scale);
-        ctx.fillText(`Quantity: ${appleCount}`, 50 * scale, 165 * scale);
-
-        // Banana info
-        ctx.fillStyle = bananaColor;
-        ctx.fillText('🍌 Bananas', 300 * scale, 80 * scale);
-        ctx.fillStyle = textColor;
-        ctx.fillText(`Price: $${bananaPrice}`, 300 * scale, 105 * scale);
-        ctx.fillText(`Marginal Utility: ${bananaMU}`, 300 * scale, 125 * scale);
-        ctx.fillText(`MU/P Ratio: ${bananaMUP.toFixed(1)}`, 300 * scale, 145 * scale);
-        ctx.fillText(`Quantity: ${bananaCount}`, 300 * scale, 165 * scale);
-
-        // Draw basket at bottom (scaled dimensions and positions)
-        const basketWidth = 300 * scale;
-        const basketHeight = 80 * scale;
-        const basketX = canvas.width / 2 - basketWidth / 2;
-        const basketY = canvas.height - 140 * scale;
-
-        ctx.fillStyle = basketColor;
-        ctx.fillRect(basketX, basketY, basketWidth, basketHeight);
-        ctx.fillStyle = '#654321'; // Basket rim
-        ctx.fillRect(basketX - 10 * scale, basketY - 10 * scale, basketWidth + 20 * scale, 15 * scale);
-        
-        ctx.fillStyle = textColor;
-        ctx.font = `${16 * scale}px Arial`;
-        ctx.textAlign = 'center';
-        ctx.fillText('Shopping Basket', canvas.width / 2, basketY - 20 * scale);
-
-        // Draw items in basket (scaled)
-        choices.forEach((choice, index) => {
-            const col = index;
-            const x = basketX + (20 * scale) + (col * 35 * scale);
-            const y = basketY + (50 * scale);
-            
-            ctx.font = `${28 * scale}px Arial`;
-            ctx.textAlign = 'left';
-
-            if (choice === 'apple') {
-                ctx.fillText('🍎', x, y);
-            } else if (choice === 'banana') {
-                ctx.fillText('🍌', x, y);
-            }
-        });
-
-        // Total cost and instructions (scaled)
-        ctx.fillStyle = textColor;
-        ctx.font = `${18 * scale}px Arial`;
-        ctx.textAlign = 'center';
-        ctx.fillText(`Total Cost: $${totalCost}. Budget: $7.`, canvas.width / 2, canvas.height - 20 * scale);
-    }, [[...choices]]); // Dependency is just the state object.
-
-    // 4. This effect runs once to set up the resize listener.
-    useEffect(() => {
-        const handleResize = () => {
-            if (containerRef.current) {
-                const { width: containerWidth, height: containerHeight } = containerRef.current.getBoundingClientRect();
-                
-                // Calculate scale to fit the content within the container, maintaining aspect ratio.
-                const scale = Math.min(containerWidth / baseWidth, containerHeight / baseHeight);
-                
-                setSize({
-                    width: baseWidth * scale,
-                    height: baseHeight * scale,
-                });
-            }
-        };
-        // Set the initial size.
-        handleResize();
-        // Add event listener for window resizing.
-        window.addEventListener('resize', handleResize);
-        // Cleanup listener on component unmount.
-        return () => window.removeEventListener('resize', handleResize);
-    }, []); // Empty array ensures this runs only once on mount.
-
-    // This effect handles the actual drawing, re-running whenever the data or canvas size changes.
-    useEffect(() => {
-        const canvas = canvasRef.current;
-        if (!canvas) return;
-        const ctx = canvas.getContext('2d');
-        if (!ctx) return;
-
-        // Set the canvas element's resolution.
-        canvas.width = size.width;
-        canvas.height = size.height;
-
-        draw(ctx, canvas);
-    }, [draw, size]); // Re-draw if the drawing logic or size changes.
+    const bananaData = [
+        { label: "Price", value: `$${bananaPrice}` },
+        { label: "Marginal Utility", value: bananaMU },
+        { label: "MU/Price Ratio", value: bananaMUP },
+        { label: "Quantity", value: bananaCount }
+    ];
 
     return (
-        // Assign the container ref and ensure it fills the available space.
-        <div ref={containerRef} className="w-full h-full flex flex-col items-center justify-center bg-gradient-to-b from-blue-50 to-green-50 p-4">
-            <canvas
-                ref={canvasRef}
-                className="border-2 border-gray-300 rounded-lg shadow-lg bg-white"
-            />
+        <div className="w-full min-h-full flex flex-col items-center justify-center bg-gradient-to-b from-blue-50 to-green-50 p-4 sm:p-6">
+            <div className="w-full max-w-4xl mx-auto flex flex-col items-center space-y-6">
+                
+                {/* Title */}
+                <h2 className="text-3xl md:text-4xl font-bold text-gray-700 text-center">
+                    Marginal Utility Maximization
+                </h2>
+
+                {/* Info Cards Section */}
+                <div className="flex flex md:flex-row gap-6 md:gap-8 w-full justify-center">
+                    <InfoCard title="Apples" emoji="🍎" data={appleData} />
+                    <InfoCard title="Bananas" emoji="🍌" data={bananaData} />
+                </div>
+
+                {/* Shopping Basket Section */}
+                <div className="w-full max-w-2xl bg-white p-6 rounded-lg shadow-md">
+                    <h3 className="text-2xl font-semibold mb-4 text-center text-gray-800">
+                        Shopping Basket
+                    </h3>
+                    <div className="flex flex-wrap gap-3 justify-center items-center p-4 min-h-[6rem] rounded-lg bg-yellow-50 border-2 border-dashed border-yellow-300">
+                        {choices.length > 0 ? (
+                            choices.map((choice, index) => (
+                                <span key={index} className="text-4xl animate-pop-in">
+                                    {choice === 'apple' ? '🍎' : '🍌'}
+                                </span>
+                            ))
+                        ) : (
+                            <p className="text-gray-500">Your basket is empty.</p>
+                        )}
+                    </div>
+                </div>
+
+                {/* Total Cost and Budget */}
+                <p className="text-xl text-gray-700 font-semibold bg-white/70 backdrop-blur-sm px-4 py-2 rounded-lg shadow">
+                    Total Cost: ${totalCost}
+                    <span className="text-gray-500 font-normal"> / Budget: $7</span>
+                </p>
+
+            </div>
         </div>
     );
 });
