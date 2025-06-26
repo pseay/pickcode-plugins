@@ -4,6 +4,11 @@
       "implUrl": "/plugins-code/chat-demo/languages/BasicJS/implementation.js"
     }
   },
+  "hoyoonslesson": {
+    "BasicJS": {
+      "implUrl": "/plugins-code/hoyoonslesson/languages/BasicJS/implementation.js"
+    }
+  },
   "music": {
     "BasicJS": {
       "implUrl": "/plugins-code/music/languages/BasicJS/implementation.js"
