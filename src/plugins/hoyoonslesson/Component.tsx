@@ -179,9 +179,9 @@ const Component = observer(({ state }: { state: State | undefined }) => {
                     drawText(
                         equilibrium.x + 0.1,
                         equilibrium.y + 0.1,
-                        `E(${equilibrium.x.toFixed(2)}, ${equilibrium.y.toFixed(
+                        `   (${equilibrium.x.toFixed(
                             2
-                        )})`,
+                        )}, ${equilibrium.y.toFixed(2)})`,
                         "green"
                     );
                 }
@@ -209,7 +209,12 @@ const Component = observer(({ state }: { state: State | undefined }) => {
         console.log("state.lines changed", state?.lines);
 
         drawlines();
-    }, [state?.lines, state?.helper]); // Watch both lines and helper
+    }, [
+        state?.lines,
+        state?.helper,
+        canvasRef?.current?.width,
+        canvasRef?.current?.height,
+    ]); // Watch both lines and helper
 
     //we only change (or call this function) when the state.lines changes
 
