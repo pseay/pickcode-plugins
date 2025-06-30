@@ -18,7 +18,8 @@ const InfoCard = ({
     isCorrect: boolean | null;
 }) => {
     const classNames = [
-        "bg-white p-6 rounded-lg shadow-md sm:w-72 flex-shrink-0 transition-all duration-300",
+        // Made padding smaller (p-4) and width narrower (sm:w-64)
+        "bg-white p-4 rounded-lg shadow-md sm:w-64 flex-shrink-0 transition-all duration-300",
     ];
 
     // Make it smaller during the pulsing period.
@@ -37,7 +38,8 @@ const InfoCard = ({
 
     return (
         <div className={classNames.join(" ")}>
-            <h3 className="text-1xl font-semibold mb-2 flex items-center gap-1 text-gray-800">
+            {/* Reduced font size (text-lg), and bottom margin (mb-1.5) */}
+            <h3 className="text-lg font-semibold mb-1.5 flex items-center gap-1 text-gray-800">
                 <span>{emoji}</span>
                 <span>{title}</span>
             </h3>
@@ -48,10 +50,12 @@ const InfoCard = ({
                             key={index}
                             className="border-b last:border-b-0 border-gray-100"
                         >
-                            <td className="py-2 pr-2 text-gray-600">
+                            {/* Reduced vertical padding (py-1) */}
+                            <td className="py-1 pr-2 text-gray-600">
                                 {label}:
                             </td>
-                            <td className="py-2 pl-2 font-medium text-gray-800">
+                            {/* Reduced vertical padding (py-1) */}
+                            <td className="py-1 pl-2 font-medium text-gray-800">
                                 {value}
                             </td>
                         </tr>
@@ -184,9 +188,9 @@ const Component = observer(({ state }: { state: State | undefined }) => {
     ];
 
     return (
-        <div className="w-full min-h-full flex flex-col items-center justify-center bg-gradient-to-b from-blue-50 to-green-50 p-4 sm:p-6">
+        <div className="w-full min-h-full flex flex-col items-center justify-center bg-gradient-to-b from-blue-50 to-green-50 p-2 sm:p-4">
             <div className="w-full max-w-2xl mx-auto flex flex-col items-center space-y-2">
-                <div className="flex flex-row gap-6 w-full justify-center">
+                <div className="flex flex-row gap-4 w-full justify-center">
                     <InfoCard
                         title={"Apple #" + (appleCount + 1)}
                         emoji="🍎"
@@ -213,23 +217,23 @@ const Component = observer(({ state }: { state: State | undefined }) => {
                     />
                 </div>
 
-                <div className="w-full max-w-2xl bg-white p-4 rounded-lg shadow-md">
-                    <p className="text-xl text-gray-700 font-semibold bg-white/70 px-4 pb-2 rounded-lg">
+                <div className="w-full max-w-2xl bg-white p-3 rounded-lg shadow-md">
+                    <p className="text-lg text-gray-700 font-semibold bg-white/70 px-2 pb-1 rounded-lg">
                         Basket Cost: ${totalCost}
                         <span className="text-gray-500 font-normal">
                             {" "}
                             / Budget: $7
                         </span>
                     </p>
-                    <div className="flex flex-wrap gap-3 justify-center items-center p-4 min-h-[6rem] rounded-lg bg-yellow-50 border-2 border-dashed border-yellow-300">
+                    <div className="flex flex-wrap gap-2 justify-center items-center p-2 min-h-[4.5rem] rounded-lg bg-yellow-50 border-2 border-dashed border-yellow-300">
                         {visibleChoices.length > 0 ? (
                             visibleChoices.map((item, index) => (
                                 <span
                                     key={index}
-                                    className={`text-4xl rounded-lg p-1 transition-colors border-2 ${
+                                    className={`text-3xl rounded-lg p-0.5 transition-colors border-2 ${
                                         !item.isCorrect
                                             ? "bg-red-50 border-red-400"
-                                            : "border-transparent"
+                                            : "bg-green-50 border-green-400"
                                     }`}
                                 >
                                     {item.choice === "apple" ? "🍎" : "🍌"}
