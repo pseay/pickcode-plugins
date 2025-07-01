@@ -18,7 +18,6 @@ const InfoCard = ({
     isCorrect: boolean | null;
 }) => {
     const classNames = [
-        // Made padding smaller (p-4) and width narrower (sm:w-64)
         "bg-white p-4 rounded-lg shadow-md sm:w-64 flex-shrink-0 transition-all duration-300",
     ];
 
@@ -38,7 +37,6 @@ const InfoCard = ({
 
     return (
         <div className={classNames.join(" ")}>
-            {/* Reduced font size (text-lg), and bottom margin (mb-1.5) */}
             <h3 className="text-lg font-semibold mb-1.5 flex items-center gap-1 text-gray-800">
                 <span>{emoji}</span>
                 <span>{title}</span>
@@ -50,11 +48,9 @@ const InfoCard = ({
                             key={index}
                             className="border-b last:border-b-0 border-gray-100"
                         >
-                            {/* Reduced vertical padding (py-1) */}
                             <td className="py-1 pr-2 text-gray-600">
                                 {label}:
                             </td>
-                            {/* Reduced vertical padding (py-1) */}
                             <td className="py-1 pl-2 font-medium text-gray-800">
                                 {value}
                             </td>
