@@ -23,6 +23,23 @@ export type People = {
     start: number;
 };
 
+export type Price = {
+    price: number;
+};
+
+export type Quantity = {
+    quantity: number;
+};
+
+export type Shift = {
+    shift: number;
+};
+
 export type Drought = {
     start: number;
+};
+
+export type FunctionCall = {
+    functionName: any;
+    functionName2: any;
 };

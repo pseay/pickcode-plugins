@@ -9,6 +9,10 @@ addDrought(5);    // Shift supply curve left by 50 (5 * 10)
 showHelpers(); 
 
 
+// Set price and quantity
+setPrice(0.5);
+setQuantity(0.5);
+
 // Cool animation to see the equilibrium point move
 let counter = 0;
 

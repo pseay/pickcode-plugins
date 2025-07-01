@@ -1,5 +1,5 @@
 import { action, observable } from "mobx";
-import { Line, ShiftCommand, Helper } from "./messages";
+import { Line, ShiftCommand, Helper, Price, Quantity } from "./messages";
 
 export class State {
     @observable
@@ -7,6 +7,12 @@ export class State {
 
     @observable
     accessor helper: Helper | null = null;
+
+    @observable
+    accessor price: number = 0;
+
+    @observable
+    accessor quantity: number = 0;
 
     public init = () => {};
 
@@ -62,7 +68,9 @@ export class State {
     };
 
     @action
-    public onMessage = (message: Line | ShiftCommand | Helper) => {
+    public onMessage = (
+        message: Line | ShiftCommand | Helper | Price | Quantity | Function
+    ) => {
         if ("start" in message && "end" in message) {
             // This is a Line
             console.log("Adding line:", message);
@@ -103,6 +111,13 @@ export class State {
             // This is a Helper message
             console.log("Helper message received:", message);
             this.helper = message as Helper;
+        } else if ("price" in message) {
+            console.log("Price message received:", message);
+            this.price = message.price;
+            console.log("Price set to:", this.price);
+        } else if ("quantity" in message) {
+            console.log("Quantity message received:", message);
+            this.quantity = message.quantity;
         }
     };
 }

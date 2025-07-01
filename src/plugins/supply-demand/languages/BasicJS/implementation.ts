@@ -1,7 +1,24 @@
-import { Line, ShiftCommand, Helper } from "../../messages";
+import {
+    Line,
+    ShiftCommand,
+    Helper,
+    Price,
+    Quantity,
+    Shift,
+    Function,
+} from "../../messages";
 
 const createExports = (
-    sendMessage: (message: Line | ShiftCommand | Helper) => void
+    sendMessage: (
+        message:
+            | Line
+            | ShiftCommand
+            | Helper
+            | Price
+            | Quantity
+            | Shift
+            | Function
+    ) => void
 ) => {
     console.log("createExports", sendMessage);
     return Promise.resolve({
@@ -33,6 +50,19 @@ const createExports = (
         // Generic shift function for any line
         shiftLine: (lineIndex: number, amount: number) => {
             sendMessage({ type: "shift", lineIndex, amount });
+        },
+
+        setPrice: (price: number) => {
+            sendMessage({ price });
+            console.log("setPrice called with:", price);
+        },
+        setQuantity: (quantity: number) => {
+            sendMessage({ quantity });
+            console.log("setQuantity called with:", quantity);
+        },
+
+        setHelpers: (functionName: Function, functionName2: Function) => {
+            sendMessage({ functionName, functionName2 });
         },
 
         // Show equilibrium point and helper lines

@@ -1,7 +1,7 @@
 import { observer } from "mobx-react-lite";
 import { useEffect, useRef } from "react";
 import State from "./state";
-import { Line, ShiftCommand, Helper } from "./messages";
+import { Line, ShiftCommand, Helper, FunctionCall } from "./messages";
 
 const Component = observer(({ state }: { state: State | undefined }) => {
     const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -129,17 +129,17 @@ const Component = observer(({ state }: { state: State | undefined }) => {
 
             // Draw helper lines if requested
             if (
-                (state?.helper && state?.lines.length >= 2) ||
-                (state?.helper && state?.lines.length == 0)
+                state?.helper &&
+                (state?.lines.length >= 2 || state?.lines.length == 0)
             ) {
                 let equilibrium;
 
-                if (state?.helper && state?.lines.length == 0) {
-                    // When no lines exist, use default equilibrium at (0,0)
+                if (state?.lines.length == 0) {
+                    //default case
+                    console.log("No lines exist, so equilibrium is 0,0");
                     equilibrium = { x: 0, y: 0 };
-                    console.log("Equilibrium point is 0");
                 } else {
-                    // Calculate equilibrium point when lines exist
+                    // Calculate equilibrium point
                     equilibrium = calculateIntersection(
                         state.lines[0],
                         state.lines[1]
@@ -179,9 +179,9 @@ const Component = observer(({ state }: { state: State | undefined }) => {
                     drawText(
                         equilibrium.x + 0.1,
                         equilibrium.y + 0.1,
-                        `   (${equilibrium.x.toFixed(
+                        `E(${equilibrium.x.toFixed(2)}, ${equilibrium.y.toFixed(
                             2
-                        )}, ${equilibrium.y.toFixed(2)})`,
+                        )})`,
                         "green"
                     );
                 }
@@ -209,12 +209,7 @@ const Component = observer(({ state }: { state: State | undefined }) => {
         console.log("state.lines changed", state?.lines);
 
         drawlines();
-    }, [
-        state?.lines,
-        state?.helper,
-        canvasRef?.current?.width,
-        canvasRef?.current?.height,
-    ]); // Watch both lines and helper
+    }, [state?.lines, state?.helper]); // Watch both lines and helper
 
     //we only change (or call this function) when the state.lines changes
 
