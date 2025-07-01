@@ -232,7 +232,7 @@ const Component = observer(({ state }: { state: State | undefined }) => {
                                     key={index}
                                     className={`text-3xl rounded-lg p-0.5 transition-colors border-2 ${
                                         !item.isCorrect
-                                            ? "bg-red-50 border-red-400"
+                                            ? "bg-red-50 border-dashed border-red-400"
                                             : "bg-green-50 border-green-400"
                                     }`}
                                 >
