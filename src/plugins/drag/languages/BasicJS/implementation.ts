@@ -18,17 +18,28 @@ const createExports = (sendMessage: (message: SimulationMessage) => void) => {
             const A = 0.004; // Cross-sectional area of a tennis ball (m^2)
             const CD = 0.5; // Drag coefficient for a sphere
             const M = 0.058; // Mass of a tennis ball (kg)
-            const TIMESTEP = 0.01; // seconds
+            const TIMESTEP = 0.05; // seconds
+
+            const INITIAL_SPEED = 45; // Initial speed
+            const INITIAL_ANGLE = 0.25 * Math.PI; // Angle of inclination for launch
+            const WIND_SPEED_X = -12; // Headwind speed in m/s (negative for headwind)
 
             const getDrag = (velocity: { x: number; y: number }) => {
-                const speed = Math.sqrt(
-                    velocity.x * velocity.x + velocity.y * velocity.y
+                const relativeVelocityX = velocity.x - WIND_SPEED_X;
+                const relativeVelocityY = velocity.y;
+                const relativeSpeed = Math.sqrt(
+                    relativeVelocityX * relativeVelocityX +
+                        relativeVelocityY * relativeVelocityY
                 );
                 // Calculate drag acceleration directly (drag force / mass)
                 const dragAccelerationMagnitude =
-                    (0.5 * RHO * A * CD * speed * speed) / M;
-                const dragX = -dragAccelerationMagnitude * (velocity.x / speed);
-                const dragY = -dragAccelerationMagnitude * (velocity.y / speed);
+                    (0.5 * RHO * A * CD * relativeSpeed * relativeSpeed) / M;
+                const dragX =
+                    -dragAccelerationMagnitude *
+                    (relativeVelocityX / relativeSpeed);
+                const dragY =
+                    -dragAccelerationMagnitude *
+                    (relativeVelocityY / relativeSpeed);
                 return { x: dragX, y: dragY };
             };
 
@@ -36,11 +47,15 @@ const createExports = (sendMessage: (message: SimulationMessage) => void) => {
             let actualPath: { x: number; y: number }[] = [];
 
             // Initial conditions
+            let initial_velocity = {
+                x: INITIAL_SPEED * Math.cos(INITIAL_ANGLE),
+                y: INITIAL_SPEED * Math.sin(INITIAL_ANGLE),
+            };
             let currentPositionPredicted = { x: 0, y: 1 };
-            let currentVelocityPredicted = { x: 13.81092, y: 36.86184 };
+            let currentVelocityPredicted = { ...initial_velocity };
 
             let currentPositionActual = { x: 0, y: 1 };
-            let currentVelocityActual = { x: 13.81092, y: 36.86184 };
+            let currentVelocityActual = { ...initial_velocity };
 
             predictedPath.push({ ...currentPositionPredicted });
             actualPath.push({ ...currentPositionActual });

@@ -58,7 +58,13 @@ const Component = observer(({ state }: { state: State | undefined }) => {
 
             // Draw tennis ball
             ctx.beginPath();
-            ctx.arc(state.ballPosition.x * scale + offsetX, offsetY - state.ballPosition.y * scale, 10, 0, Math.PI * 2);
+            ctx.arc(
+                state.ballPosition.x * scale + offsetX,
+                offsetY - state.ballPosition.y * scale,
+                10,
+                0,
+                Math.PI * 2
+            );
             ctx.fillStyle = "yellow";
             ctx.fill();
             ctx.strokeStyle = "orange";
@@ -79,15 +85,23 @@ const Component = observer(({ state }: { state: State | undefined }) => {
         };
 
         draw();
-
-    }, [state?.predictedPath, state?.actualPath, state?.ballPosition, state?.isComplete, state?.error, scale, offsetX, offsetY]);
+    }, [
+        state?.predictedPath,
+        state?.actualPath,
+        state?.ballPosition,
+        state?.isComplete,
+        state?.error,
+        scale,
+        offsetX,
+        offsetY,
+    ]);
 
     return (
         <div className="w-full h-full flex flex-col items-center justify-center bg-gray-100 p-4">
             <h2 className="text-2xl font-bold mb-4">Tennis Ball Simulation</h2>
             <canvas
                 ref={canvasRef}
-                width={800}
+                width={500}
                 height={500}
                 className="bg-white border border-gray-300 shadow-lg"
             ></canvas>
