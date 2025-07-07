@@ -12,6 +12,29 @@ const Component = observer(({ state }: { state: State | undefined }) => {
         const canvas = canvasRef.current;
         if (!canvas || !state) return;
 
+        const container = canvas.parentElement;
+        if (!container) return;
+
+        const setCanvasDimensions = () => {
+            canvas.width = container.clientWidth - 50;
+            canvas.height = container.clientHeight - 50;
+            setOffsetX(canvas.width / 4);
+            setOffsetY((canvas.height * 3) / 4);
+            setScale(Math.min(canvas.width / 50, canvas.height / 50));
+        };
+
+        setCanvasDimensions();
+        window.addEventListener("resize", setCanvasDimensions);
+
+        return () => {
+            window.removeEventListener("resize", setCanvasDimensions);
+        };
+    }, []);
+
+    useEffect(() => {
+        const canvas = canvasRef.current;
+        if (!canvas || !state) return;
+
         const ctx = canvas.getContext("2d");
         if (!ctx) return;
 
@@ -92,18 +115,10 @@ const Component = observer(({ state }: { state: State | undefined }) => {
 
     return (
         <div className="w-full h-full flex flex-col items-center justify-center bg-gray-100 p-4">
-            <h2 className="text-2xl font-bold mb-4">Tennis Ball Simulation</h2>
             <canvas
                 ref={canvasRef}
-                width={500}
-                height={500}
                 className="bg-white border border-gray-300 shadow-lg"
             ></canvas>
-            <div className="mt-4 text-sm text-gray-600">
-                <p>Blue Line: Your Predicted Path</p>
-                <p>Green Line: Actual Path</p>
-                <p>Yellow Ball: Actual Ball Position</p>
-            </div>
         </div>
     );
 });
