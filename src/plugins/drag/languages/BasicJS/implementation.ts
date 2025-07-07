@@ -24,7 +24,7 @@ const createExports = (sendMessage: (message: SimulationMessage) => void) => {
                 const speed = Math.sqrt(
                     velocity.x * velocity.x + velocity.y * velocity.y
                 );
-                // Calculate drag acceleration directly (drag force / original mass)
+                // Calculate drag acceleration directly (drag force / mass)
                 const dragAccelerationMagnitude =
                     (0.5 * RHO * A * CD * speed * speed) / M;
                 const dragX = -dragAccelerationMagnitude * (velocity.x / speed);
@@ -37,10 +37,10 @@ const createExports = (sendMessage: (message: SimulationMessage) => void) => {
 
             // Initial conditions
             let currentPositionPredicted = { x: 0, y: 1 };
-            let currentVelocityPredicted = { x: 30, y: 10 };
+            let currentVelocityPredicted = { x: 13.81092, y: 36.86184 };
 
             let currentPositionActual = { x: 0, y: 1 };
-            let currentVelocityActual = { x: 30, y: 10 };
+            let currentVelocityActual = { x: 13.81092, y: 36.86184 };
 
             predictedPath.push({ ...currentPositionPredicted });
             actualPath.push({ ...currentPositionActual });
