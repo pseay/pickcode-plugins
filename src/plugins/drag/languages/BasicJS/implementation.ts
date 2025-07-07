@@ -24,9 +24,11 @@ const createExports = (sendMessage: (message: SimulationMessage) => void) => {
                 const speed = Math.sqrt(
                     velocity.x * velocity.x + velocity.y * velocity.y
                 );
-                const dragMagnitude = 0.5 * RHO * A * CD * speed * speed;
-                const dragX = -dragMagnitude * (velocity.x / speed);
-                const dragY = -dragMagnitude * (velocity.y / speed);
+                // Calculate drag acceleration directly (drag force / original mass)
+                const dragAccelerationMagnitude =
+                    (0.5 * RHO * A * CD * speed * speed) / M;
+                const dragX = -dragAccelerationMagnitude * (velocity.x / speed);
+                const dragY = -dragAccelerationMagnitude * (velocity.y / speed);
                 return { x: dragX, y: dragY };
             };
 
@@ -51,9 +53,9 @@ const createExports = (sendMessage: (message: SimulationMessage) => void) => {
                 lastVel: { x: number; y: number },
                 dt: number
             ) => {
-                const dragForce = getDrag(lastVel);
-                const accelerationX = dragForce.x / M;
-                const accelerationY = dragForce.y / M - G;
+                const dragAcceleration = getDrag(lastVel); // Now returns acceleration
+                const accelerationX = dragAcceleration.x;
+                const accelerationY = dragAcceleration.y - G;
 
                 const currentVelX = lastVel.x + accelerationX * dt;
                 const currentVelY = lastVel.y + accelerationY * dt;

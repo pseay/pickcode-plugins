@@ -1,10 +1,7 @@
 function getNextPosition(currentPosition, lastVelocity, timestep, getDrag) {
-    const G = 9.81; // Acceleration due to gravity (m/s^2)
-    const M = 0.058; // Mass of a tennis ball (kg)
-
-    const dragForce = getDrag(lastVelocity);
-    const accelerationX = dragForce.x / M;
-    const accelerationY = (dragForce.y / M) - G;
+    const dragAcceleration = getDrag(lastVelocity);
+    const accelerationX = dragAcceleration.x;
+    const accelerationY = dragAcceleration.y;
 
     const currentVelX = lastVelocity.x + (accelerationX * timestep);
     const currentVelY = lastVelocity.y + (accelerationY * timestep);
