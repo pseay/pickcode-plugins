@@ -1,14 +1,20 @@
-function getNextPosition(currentPosition, lastVelocity, timestep) {
-    // Implement your Forward Euler method here.
-    // currentPosition: { x: number, y: number }
-    // lastVelocity: { x: number, y: number }
-    // timestep: number
-    // Return the next position: { x: number, y: number }
+function getNextPosition(currentPosition, lastVelocity, timestep, getDrag) {
+    const G = 9.81; // Acceleration due to gravity (m/s^2)
+    const M = 0.058; // Mass of a tennis ball (kg)
 
-    // Example (linear movement, replace with your drag equation):
+    const dragForce = getDrag(lastVelocity);
+    const accelerationX = dragForce.x / M;
+    const accelerationY = (dragForce.y / M) - G;
+
+    const currentVelX = lastVelocity.x + (accelerationX * timestep);
+    const currentVelY = lastVelocity.y + (accelerationY * timestep);
+
+    const nextPosX = currentPosition.x + (timestep * currentVelX);
+    const nextPosY = currentPosition.y + (timestep * currentVelY);
+
     let nextPosition = {
-        x: currentPosition.x + lastVelocity.x * timestep,
-        y: currentPosition.y + lastVelocity.y * timestep,
+        x: nextPosX,
+        y: nextPosY,
     };
     return nextPosition;
 }
