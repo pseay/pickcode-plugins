@@ -18,7 +18,8 @@ const createExports = (sendMessage: (message: SimulationMessage) => void) => {
             const A = 0.004; // Cross-sectional area of a tennis ball (m^2)
             const CD = 0.5; // Drag coefficient for a sphere
             const M = 0.058; // Mass of a tennis ball (kg)
-            const TIMESTEP = 0.05; // seconds
+            const SIMULATION_TIMESTEP = 0.05; // seconds (larger for simulation)
+            const ACTUAL_TIMESTEP = 0.01; // seconds (smaller for actual)
 
             const INITIAL_SPEED = 50; // Initial speed
             const INITIAL_ANGLE = 0.23 * Math.PI; // Angle of inclination for launch
@@ -61,7 +62,9 @@ const createExports = (sendMessage: (message: SimulationMessage) => void) => {
             actualPath.push({ ...currentPositionActual });
 
             let isComplete = false;
-            let time = 0;
+            let simulatedTimeElapsed = 0;
+            const FRAME_SIMULATED_TIME_ADVANCE = 0.05; // seconds of simulated time to advance per frame
+            let currentAnimation: "predicted" | "actual" = "predicted";
 
             const getNextPositionActual = (
                 currentPos: { x: number; y: number },
@@ -85,52 +88,59 @@ const createExports = (sendMessage: (message: SimulationMessage) => void) => {
             };
 
             const interval = setInterval(() => {
-                if (
-                    currentPositionActual.y < 0 ||
-                    currentPositionPredicted.y < 0
-                ) {
-                    isComplete = true;
-                    clearInterval(interval);
-                }
-
                 if (!isComplete) {
-                    // User's predicted path
-                    const nextPredicted = getNextPosition(
-                        currentPositionPredicted,
-                        currentVelocityPredicted,
-                        TIMESTEP,
-                        getDrag
-                    );
-                    predictedPath.push(nextPredicted);
-                    // For the user's path, we assume they only return position, so we need to re-calculate velocity based on the new position.
-                    // This is a simplification for the lesson, as a true Euler method would update velocity first.
-                    currentVelocityPredicted.x =
-                        (nextPredicted.x - currentPositionPredicted.x) /
-                        TIMESTEP;
-                    currentVelocityPredicted.y =
-                        (nextPredicted.y - currentPositionPredicted.y) /
-                        TIMESTEP;
-                    currentPositionPredicted = nextPredicted;
+                    let currentFrameSimulatedTime = 0;
+                    while (
+                        currentFrameSimulatedTime < FRAME_SIMULATED_TIME_ADVANCE
+                    ) {
+                        if (currentAnimation === "predicted") {
+                            // User's predicted path
+                            const nextPredicted = getNextPosition(
+                                currentPositionPredicted,
+                                currentVelocityPredicted,
+                                SIMULATION_TIMESTEP,
+                                getDrag
+                            );
+                            predictedPath.push(nextPredicted);
+                            currentVelocityPredicted.x =
+                                (nextPredicted.x - currentPositionPredicted.x) /
+                                SIMULATION_TIMESTEP;
+                            currentVelocityPredicted.y =
+                                (nextPredicted.y - currentPositionPredicted.y) /
+                                SIMULATION_TIMESTEP;
+                            currentPositionPredicted = nextPredicted;
 
-                    // Actual path
-                    const actualResult = getNextPositionActual(
-                        currentPositionActual,
-                        currentVelocityActual,
-                        TIMESTEP
-                    );
-                    currentPositionActual = actualResult.position;
-                    currentVelocityActual = actualResult.velocity;
-                    actualPath.push(currentPositionActual);
+                            if (currentPositionPredicted.y < 0) {
+                                currentAnimation = "actual";
+                            }
+                        } else if (currentAnimation === "actual") {
+                            // Actual path
+                            const actualResult = getNextPositionActual(
+                                currentPositionActual,
+                                currentVelocityActual,
+                                ACTUAL_TIMESTEP
+                            );
+                            currentPositionActual = actualResult.position;
+                            currentVelocityActual = actualResult.velocity;
+                            actualPath.push(currentPositionActual);
 
-                    time += TIMESTEP;
+                            if (currentPositionActual.y < 0) {
+                                isComplete = true;
+                                clearInterval(interval);
+                            }
+                        }
+                        currentFrameSimulatedTime += ACTUAL_TIMESTEP;
+                    }
+                    simulatedTimeElapsed += FRAME_SIMULATED_TIME_ADVANCE;
                 }
 
                 sendMessage({
                     type: "simulationUpdate",
                     predictedPath: predictedPath,
                     actualPath: actualPath,
-                    ballPosition: currentPositionActual, // Animate the actual ball
+                    ballPosition: currentPositionActual,
                     isComplete: isComplete,
+                    currentAnimation: currentAnimation,
                 });
             }, 50); // Update every 50ms
         },

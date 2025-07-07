@@ -15,6 +15,9 @@ export class State {
     accessor isComplete: boolean = false;
 
     @observable
+    accessor currentAnimation: "predicted" | "actual" = "predicted";
+
+    @observable
     accessor error: string | null = null;
 
     public init = () => {
@@ -23,6 +26,7 @@ export class State {
         this.ballPosition = { x: 0, y: 0 };
         this.isComplete = false;
         this.error = null;
+        this.currentAnimation = "predicted";
     };
 
     @action
@@ -32,6 +36,7 @@ export class State {
             this.actualPath = message.actualPath;
             this.ballPosition = message.ballPosition;
             this.isComplete = message.isComplete;
+            this.currentAnimation = message.currentAnimation;
             return true;
         }
         this.error = `Unknown message type: ${message.type}`;

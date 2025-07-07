@@ -6,6 +6,7 @@ export type SimulationMessage = {
     actualPath: Position[];
     ballPosition: Position;
     isComplete: boolean;
+    currentAnimation: "predicted" | "actual";
 };
 
 export type Message = SimulationMessage;

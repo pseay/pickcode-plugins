@@ -94,10 +94,17 @@ const Component = observer(({ state }: { state: State | undefined }) => {
             ctx.lineWidth = 1;
             ctx.stroke();
 
+            // Draw legend
+            ctx.font = "16px Arial";
+            ctx.fillStyle = "blue";
+            ctx.fillText("Blue: Predicted Path", 10, 30);
+            ctx.fillStyle = "green";
+            ctx.fillText("Green: Actual Path", 10, 50);
+
             if (state.error) {
                 ctx.fillStyle = "red";
                 ctx.font = "16px Arial";
-                ctx.fillText(`Error: ${state.error}`, 10, 60);
+                ctx.fillText(`Error: ${state.error}`, 10, 70);
             }
         };
 
@@ -108,6 +115,7 @@ const Component = observer(({ state }: { state: State | undefined }) => {
         state?.ballPosition,
         state?.isComplete,
         state?.error,
+        state?.currentAnimation,
         scale,
         offsetX,
         offsetY,
