@@ -26,22 +26,25 @@ const createExports = (sendMessage: (message: SimulationMessage) => void) => {
             const WIND_SPEED_X = -12; // Headwind speed in m/s (negative for headwind)
 
             const getDrag = (velocity: { x: number; y: number }) => {
+                const EPS = 1e-8;
                 const relativeVelocityX = velocity.x - WIND_SPEED_X;
                 const relativeVelocityY = velocity.y;
-                const relativeSpeed = Math.sqrt(
-                    relativeVelocityX * relativeVelocityX +
-                        relativeVelocityY * relativeVelocityY
-                );
-                // Calculate drag acceleration directly (drag force / mass)
+
+                const relativeSpeed =
+                    Math.sqrt(relativeVelocityX ** 2 + relativeVelocityY ** 2) +
+                    EPS; // avoid division by zero
+
                 const dragAccelerationMagnitude =
-                    (0.5 * RHO * A * CD * relativeSpeed * relativeSpeed) / M;
-                const dragX =
-                    -dragAccelerationMagnitude *
-                    (relativeVelocityX / relativeSpeed);
-                const dragY =
-                    -dragAccelerationMagnitude *
-                    (relativeVelocityY / relativeSpeed);
-                return { x: dragX, y: dragY };
+                    (0.5 * RHO * A * CD * relativeSpeed ** 2) / M;
+
+                return {
+                    x:
+                        -dragAccelerationMagnitude *
+                        (relativeVelocityX / relativeSpeed),
+                    y:
+                        -dragAccelerationMagnitude *
+                        (relativeVelocityY / relativeSpeed),
+                };
             };
 
             let predictedPath: { x: number; y: number }[] = [];
@@ -110,7 +113,10 @@ const createExports = (sendMessage: (message: SimulationMessage) => void) => {
                                 SIMULATION_TIMESTEP;
                             currentPositionPredicted = nextPredicted;
 
-                            if (currentPositionPredicted.y < 0) {
+                            if (
+                                currentPositionPredicted.y < 0 ||
+                                predictedPath.length > 500
+                            ) {
                                 currentAnimation = "actual";
                             }
                         } else if (currentAnimation === "actual") {

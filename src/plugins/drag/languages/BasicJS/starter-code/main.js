@@ -1,7 +1,7 @@
 function getNextPosition(currentPosition, lastVelocity, timestep, getDrag) {
     const dragAcceleration = getDrag(lastVelocity);
     const accelerationX = dragAcceleration.x;
-    const accelerationY = dragAcceleration.y;
+    const accelerationY = dragAcceleration.y - 9.81;
 
     const currentVelX = lastVelocity.x + (accelerationX * timestep);
     const currentVelY = lastVelocity.y + (accelerationY * timestep);

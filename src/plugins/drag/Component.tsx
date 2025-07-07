@@ -20,7 +20,7 @@ const Component = observer(({ state }: { state: State | undefined }) => {
             canvas.height = container.clientHeight - 50;
             setOffsetX(canvas.width / 4);
             setOffsetY((canvas.height * 3) / 4);
-            setScale(Math.min(canvas.width / 50, canvas.height / 50));
+            setScale(0.25 * Math.min(canvas.width / 50, canvas.height / 50));
         };
 
         setCanvasDimensions();
@@ -50,19 +50,14 @@ const Component = observer(({ state }: { state: State | undefined }) => {
             ctx.stroke();
 
             // Draw predicted path
-            ctx.beginPath();
-            ctx.strokeStyle = "blue";
-            ctx.lineWidth = 2;
-            state.predictedPath.forEach((pos, index) => {
+            ctx.fillStyle = "blue";
+            state.predictedPath.forEach((pos) => {
                 const x = pos.x * scale + offsetX;
                 const y = offsetY - pos.y * scale;
-                if (index === 0) {
-                    ctx.moveTo(x, y);
-                } else {
-                    ctx.lineTo(x, y);
-                }
+                ctx.beginPath();
+                ctx.arc(x, y, 2, 0, Math.PI * 2);
+                ctx.fill();
             });
-            ctx.stroke();
 
             // Draw actual path
             ctx.beginPath();
