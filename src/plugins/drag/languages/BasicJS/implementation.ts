@@ -20,8 +20,8 @@ const createExports = (sendMessage: (message: SimulationMessage) => void) => {
             const M = 0.058; // Mass of a tennis ball (kg)
             const TIMESTEP = 0.05; // seconds
 
-            const INITIAL_SPEED = 45; // Initial speed
-            const INITIAL_ANGLE = 0.25 * Math.PI; // Angle of inclination for launch
+            const INITIAL_SPEED = 50; // Initial speed
+            const INITIAL_ANGLE = 0.23 * Math.PI; // Angle of inclination for launch
             const WIND_SPEED_X = -12; // Headwind speed in m/s (negative for headwind)
 
             const getDrag = (velocity: { x: number; y: number }) => {

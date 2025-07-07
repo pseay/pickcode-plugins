@@ -5,7 +5,7 @@ import State from "./state";
 const Component = observer(({ state }: { state: State | undefined }) => {
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const [scale, setScale] = useState(10); // Pixels per meter
-    const [offsetX, setOffsetX] = useState(50); // Offset for x-axis to center the ball
+    const [offsetX, setOffsetX] = useState(75); // Offset for x-axis to center the ball
     const [offsetY, setOffsetY] = useState(400); // Offset for y-axis to invert and position
 
     useEffect(() => {
@@ -70,12 +70,6 @@ const Component = observer(({ state }: { state: State | undefined }) => {
             ctx.strokeStyle = "orange";
             ctx.lineWidth = 1;
             ctx.stroke();
-
-            if (state.isComplete) {
-                ctx.fillStyle = "black";
-                ctx.font = "24px Arial";
-                ctx.fillText("Simulation Complete!", 10, 30);
-            }
 
             if (state.error) {
                 ctx.fillStyle = "red";
