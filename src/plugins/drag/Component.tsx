@@ -20,7 +20,7 @@ const Component = observer(({ state }: { state: State | undefined }) => {
             canvas.height = container.clientHeight - 50;
             setOffsetX(canvas.width / 4);
             setOffsetY((canvas.height * 3) / 4);
-            setScale(0.25 * Math.min(canvas.width / 50, canvas.height / 50));
+            setScale(Math.min(canvas.width / 50, canvas.height / 50));
         };
 
         setCanvasDimensions();

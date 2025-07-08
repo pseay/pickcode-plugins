@@ -5,21 +5,21 @@ const createExports = (sendMessage: (message: SimulationMessage) => void) => {
         runSimulation: (
             getNextPosition: (
                 currentPosition: { x: number; y: number },
-                lastVelocity: { x: number; y: number },
+                currentVelocity: { x: number; y: number },
                 timestep: number,
                 getDrag: (velocity: { x: number; y: number }) => {
                     x: number;
                     y: number;
                 }
-            ) => { x: number; y: number }
+            ) => { x: number; y: number; xVel: number; yVel: number }
         ) => {
             const G = 9.81; // Acceleration due to gravity (m/s^2)
             const RHO = 1.225; // Air density (kg/m^3)
             const A = 0.004; // Cross-sectional area of a tennis ball (m^2)
             const CD = 0.5; // Drag coefficient for a sphere
             const M = 0.058; // Mass of a tennis ball (kg)
-            const SIMULATION_TIMESTEP = 0.05; // seconds (larger for simulation)
-            const ACTUAL_TIMESTEP = 0.01; // seconds (smaller for actual)
+            const SIMULATION_TIMESTEP = 0.2; // seconds (larger for simulation)
+            const ACTUAL_TIMESTEP = 0.005; // seconds (smaller for actual)
 
             const INITIAL_SPEED = 50; // Initial speed
             const INITIAL_ANGLE = 0.23 * Math.PI; // Angle of inclination for launch
@@ -71,22 +71,22 @@ const createExports = (sendMessage: (message: SimulationMessage) => void) => {
 
             const getNextPositionActual = (
                 currentPos: { x: number; y: number },
-                lastVel: { x: number; y: number },
+                currentVel: { x: number; y: number },
                 dt: number
             ) => {
-                const dragAcceleration = getDrag(lastVel); // Now returns acceleration
+                const nextPosX = currentPos.x + dt * currentVel.x;
+                const nextPosY = currentPos.y + dt * currentVel.y;
+
+                const dragAcceleration = getDrag(currentVel); // Now returns acceleration
                 const accelerationX = dragAcceleration.x;
                 const accelerationY = dragAcceleration.y - G;
 
-                const currentVelX = lastVel.x + accelerationX * dt;
-                const currentVelY = lastVel.y + accelerationY * dt;
-
-                const nextPosX = currentPos.x + dt * currentVelX;
-                const nextPosY = currentPos.y + dt * currentVelY;
+                const nextVelX = currentVel.x + accelerationX * dt;
+                const nextVelY = currentVel.y + accelerationY * dt;
 
                 return {
                     position: { x: nextPosX, y: nextPosY },
-                    velocity: { x: currentVelX, y: currentVelY },
+                    velocity: { x: nextVelX, y: nextVelY },
                 };
             };
 
@@ -104,14 +104,16 @@ const createExports = (sendMessage: (message: SimulationMessage) => void) => {
                                 SIMULATION_TIMESTEP,
                                 getDrag
                             );
-                            predictedPath.push(nextPredicted);
-                            currentVelocityPredicted.x =
-                                (nextPredicted.x - currentPositionPredicted.x) /
-                                SIMULATION_TIMESTEP;
-                            currentVelocityPredicted.y =
-                                (nextPredicted.y - currentPositionPredicted.y) /
-                                SIMULATION_TIMESTEP;
-                            currentPositionPredicted = nextPredicted;
+                            predictedPath.push({
+                                x: nextPredicted.x,
+                                y: nextPredicted.y,
+                            });
+                            currentVelocityPredicted.x = nextPredicted.xVel;
+                            currentVelocityPredicted.y = nextPredicted.yVel;
+                            currentPositionPredicted = {
+                                x: nextPredicted.x,
+                                y: nextPredicted.y,
+                            };
 
                             if (
                                 currentPositionPredicted.y < 0 ||
