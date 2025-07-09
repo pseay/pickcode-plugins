@@ -11,14 +11,15 @@ const createExports = (sendMessage: (message: SimulationMessage) => void) => {
                     x: number;
                     y: number;
                 }
-            ) => { x: number; y: number; xVel: number; yVel: number }
+            ) => { x: number; y: number; xVel: number; yVel: number },
+            stepSize: number
         ) => {
             const G = 9.81; // Acceleration due to gravity (m/s^2)
             const RHO = 1.225; // Air density (kg/m^3)
             const A = 0.004; // Cross-sectional area of a tennis ball (m^2)
             const CD = 0.5; // Drag coefficient for a sphere
             const M = 0.058; // Mass of a tennis ball (kg)
-            const SIMULATION_TIMESTEP = 0.2; // seconds (larger for simulation)
+            const SIMULATION_TIMESTEP = stepSize; // seconds (larger for simulation)
             const ACTUAL_TIMESTEP = 0.005; // seconds (smaller for actual)
 
             const INITIAL_SPEED = 50; // Initial speed
