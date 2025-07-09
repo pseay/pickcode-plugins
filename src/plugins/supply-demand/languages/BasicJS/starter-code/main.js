@@ -1,17 +1,24 @@
-// Base curves are created automatically when you use shift functions!
+//law of supply demo
+for (let i = -0.8; i < 0.8; i+= 0.0001) {
+     setPrice(i)
+     setQuantity(i)
+     }
+     
+     
+     
 
-// Shift the curves using simple functions
-addSupply(0.5);  // Shift supply curve right by 0.5
-addDemand(0.3);    // Shift demand curve right by 0.3
-addDrought(5);    // Shift supply curve left by 50 (5 * 10)
+     //law of demand demo:
+     for (let i = -0.8; i < 0.8; i+= 0.0001) {
+     setPrice(-i)
+     setQuantity(i)
+     }
+     
+     
+     for (let i =0; i < 0.8; i +=0.0001) {
+     addDemand(0.0001)
+     }
+     
 
-// Show equilibrium point and helper lines
-showHelpers(); 
-
-
-// Set price and quantity
-setPrice(0.5);
-setQuantity(0.5);
 
 // Cool animation to see the equilibrium point move
 let counter = 0;
