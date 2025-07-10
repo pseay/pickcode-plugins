@@ -5,19 +5,12 @@ import {
     Price,
     Quantity,
     Shift,
-    Function,
+    Point,
 } from "../../messages";
 
 const createExports = (
     sendMessage: (
-        message:
-            | Line
-            | ShiftCommand
-            | Helper
-            | Price
-            | Quantity
-            | Shift
-            | Function
+        message: Line | ShiftCommand | Helper | Price | Quantity | Shift | Point
     ) => void
 ) => {
     console.log("createExports", sendMessage);
@@ -61,19 +54,15 @@ const createExports = (
             console.log("setQuantity called with:", quantity);
         },
 
-        setHelpers: (functionName: Function, functionName2: Function) => {
-            sendMessage({ functionName, functionName2 });
-        },
-
         // Show equilibrium point and helper lines
-        showHelpers: () => {
+        showEquilibrium: () => {
             // Calculate equilibrium point (this will be done in the component)
             // For now, send a placeholder helper message
             sendMessage({
                 equilibrium: { x: 0, y: 0 }, // Will be calculated in component
                 price: 0,
                 quantity: 0,
-            });
+            }); // Will be calculated in component
             console.log("showHelpers called");
         },
     });

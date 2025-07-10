@@ -11,8 +11,6 @@ export type ShiftCommand = {
 
 export type Helper = {
     equilibrium: { x: number; y: number };
-    price: number;
-    quantity: number;
 };
 
 export type Coconut = {
@@ -24,11 +22,11 @@ export type People = {
 };
 
 export type Price = {
-    price: number;
+    price: any;
 };
 
 export type Quantity = {
-    quantity: number;
+    quantity: any;
 };
 
 export type Shift = {
@@ -39,7 +37,7 @@ export type Drought = {
     start: number;
 };
 
-export type FunctionCall = {
-    functionName: any;
-    functionName2: any;
+export type Point = {
+    price: any;
+    quantity: any;
 };

@@ -14,6 +14,12 @@ export class State {
     @observable
     accessor quantity: number = 0;
 
+    @observable
+    accessor priceSet: boolean = false;
+
+    @observable
+    accessor quantitySet: boolean = false;
+
     public init = () => {};
 
     // Helper function to calculate intersection point of two lines
@@ -69,7 +75,7 @@ export class State {
 
     @action
     public onMessage = (
-        message: Line | ShiftCommand | Helper | Price | Quantity | Function
+        message: Line | ShiftCommand | Helper | Price | Quantity
     ) => {
         if ("start" in message && "end" in message) {
             // This is a Line
@@ -114,10 +120,12 @@ export class State {
         } else if ("price" in message) {
             console.log("Price message received:", message);
             this.price = message.price;
+            this.priceSet = true;
             console.log("Price set to:", this.price);
         } else if ("quantity" in message) {
             console.log("Quantity message received:", message);
             this.quantity = message.quantity;
+            this.quantitySet = true;
         }
     };
 }

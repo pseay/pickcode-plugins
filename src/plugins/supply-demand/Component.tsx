@@ -1,7 +1,7 @@
 import { observer } from "mobx-react-lite";
 import { useEffect, useRef } from "react";
 import State from "./state";
-import { Line, ShiftCommand, Helper, FunctionCall } from "./messages";
+import { Line, ShiftCommand, Helper, Point } from "./messages";
 
 const Component = observer(({ state }: { state: State | undefined }) => {
     const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -127,6 +127,56 @@ const Component = observer(({ state }: { state: State | undefined }) => {
                 ctx.stroke();
             });
 
+            // Draw price/quantity point if set via setPrice or setQuantity
+            //if the function is not called, then don't draw anything. Not even the (0,0) point.
+            if (state && state?.priceSet && state?.quantitySet) {
+                // Draw helper lines from axes to price/quantity point
+
+                //if the price and quantity are not undefined, then draw the point
+                if (
+                    (state?.price !== undefined &&
+                        state?.quantity !== undefined) ||
+                    (state?.price == 0 && state?.quantity == 0)
+                ) {
+                    const color = "purple"; // purple for setPrice/setQuantity
+                    ctx.strokeStyle = color;
+                    ctx.lineWidth = 0.02;
+                    ctx.setLineDash([0.05, 0.05]);
+
+                    // Vertical line from x-axis to point
+                    ctx.beginPath();
+                    ctx.moveTo(state.quantity, -1);
+                    ctx.lineTo(state.quantity, state.price);
+                    ctx.stroke();
+
+                    // Horizontal line from y-axis to point
+                    ctx.beginPath();
+                    ctx.moveTo(-1, state.price);
+                    ctx.lineTo(state.quantity, state.price);
+                    ctx.stroke();
+
+                    // Draw the point
+                    ctx.fillStyle = color;
+                    ctx.beginPath();
+                    ctx.arc(state.quantity, state.price, 0.05, 0, Math.PI * 2);
+                    ctx.fill();
+
+                    // Reset line style
+                    ctx.setLineDash([]);
+
+                    // Draw labels
+                    const label = "C"; // C for setPrice/setQuantity
+                    drawText(
+                        state.quantity + 0.1,
+                        state.price + 0.1,
+                        `${label}(${state.quantity.toFixed(
+                            2
+                        )}, ${state.price.toFixed(2)})`,
+                        color
+                    );
+                }
+            }
+
             // Draw helper lines if requested
             if (
                 state?.helper &&
@@ -207,9 +257,18 @@ const Component = observer(({ state }: { state: State | undefined }) => {
     //useEffect --> {function, array of dependencies --> [state?.lines]}
     useEffect(() => {
         console.log("state.lines changed", state?.lines);
+        console.log("state.price changed", state?.price);
+        console.log("state.quantity changed", state?.quantity);
 
         drawlines();
-    }, [state?.lines, state?.helper]); // Watch both lines and helper
+    }, [
+        state?.lines,
+        state?.helper,
+        state?.price,
+        state?.quantity,
+        state?.priceSet,
+        state?.quantitySet,
+    ]); // Watch lines, helper, price, quantity, and set flags
 
     //we only change (or call this function) when the state.lines changes
 
@@ -219,5 +278,4 @@ const Component = observer(({ state }: { state: State | undefined }) => {
         </div>
     );
 });
-
 export default Component;
