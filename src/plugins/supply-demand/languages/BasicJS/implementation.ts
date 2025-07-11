@@ -46,11 +46,11 @@ const createExports = (
         },
 
         setPrice: (price: number) => {
-            sendMessage({ price });
+            sendMessage({ price: price - 1 }); //sets the coordinate system to have the origin be at (-1, -1)
             console.log("setPrice called with:", price);
         },
         setQuantity: (quantity: number) => {
-            sendMessage({ quantity });
+            sendMessage({ quantity: quantity - 1 }); //sets the coordinate system to have the origin be at (-1, -1)
             console.log("setQuantity called with:", quantity);
         },
 

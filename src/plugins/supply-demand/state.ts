@@ -1,5 +1,5 @@
-import { action, observable } from "mobx";
-import { Line, ShiftCommand, Helper, Price, Quantity } from "./messages";
+import { action, observable, computed } from "mobx";
+import { Line, ShiftCommand, Helper, Price, Quantity, Point } from "./messages";
 
 export class State {
     @observable
@@ -9,16 +9,19 @@ export class State {
     accessor helper: Helper | null = null;
 
     @observable
-    accessor price: number = 0;
+    accessor points: Point[] = [];
 
     @observable
-    accessor quantity: number = 0;
+    accessor updateTrigger: number = 0;
 
-    @observable
-    accessor priceSet: boolean = false;
+    // Temporary storage for pending values
+    private pendingPrice: number | null = null;
+    private pendingQuantity: number | null = null;
 
-    @observable
-    accessor quantitySet: boolean = false;
+    @computed
+    get pointsCount() {
+        return this.points.length;
+    }
 
     public init = () => {};
 
@@ -119,13 +122,52 @@ export class State {
             this.helper = message as Helper;
         } else if ("price" in message) {
             console.log("Price message received:", message);
-            this.price = message.price;
-            this.priceSet = true;
-            console.log("Price set to:", this.price);
+            this.pendingPrice = message.price;
+
+            // If we have both price and quantity, create a point
+            if (this.pendingPrice !== null && this.pendingQuantity !== null) {
+                const newPoint: Point = {
+                    price: this.pendingPrice,
+                    quantity: this.pendingQuantity,
+                };
+                this.points.push(newPoint);
+                this.updateTrigger++; // Force reactivity
+                console.log(
+                    "Created paired point:",
+                    newPoint,
+                    "Total points:",
+                    this.points.length
+                );
+
+                // Reset pending values
+                this.pendingPrice = null;
+                this.pendingQuantity = null;
+            }
+
+            console.log("Price set to:", message.price);
         } else if ("quantity" in message) {
             console.log("Quantity message received:", message);
-            this.quantity = message.quantity;
-            this.quantitySet = true;
+            this.pendingQuantity = message.quantity;
+
+            // If we have both price and quantity, create a point
+            if (this.pendingPrice !== null && this.pendingQuantity !== null) {
+                const newPoint: Point = {
+                    price: this.pendingPrice,
+                    quantity: this.pendingQuantity,
+                };
+                this.points.push(newPoint);
+                this.updateTrigger++; // Force reactivity
+                console.log(
+                    "Created paired point:",
+                    newPoint,
+                    "Total points:",
+                    this.points.length
+                );
+
+                // Reset pending values
+                this.pendingPrice = null;
+                this.pendingQuantity = null;
+            }
         }
     };
 }
