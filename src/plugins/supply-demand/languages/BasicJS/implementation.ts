@@ -22,7 +22,6 @@ const createExports = (
             | DrawCommand
     ) => void
 ) => {
-    console.log("createExports", sendMessage);
     return Promise.resolve({
         drawLine: (line: Line) => sendMessage(line), //sendMessage will send the userwritten function to state.ts
 
@@ -30,13 +29,11 @@ const createExports = (
         addSupply: (amount: number) => {
             // Shift supply curve (line 0) to the right
             sendMessage({ type: "shift", lineIndex: 0, amount: amount });
-            console.log("addSupply", amount);
         },
 
         addDemand: (amount: number) => {
             // Shift demand curve (line 1) to the right
             sendMessage({ type: "shift", lineIndex: 1, amount: amount });
-            console.log("addDemand", amount);
         },
 
         addDrought: (severity: number) => {
@@ -46,7 +43,6 @@ const createExports = (
                 lineIndex: 0,
                 amount: -severity * 10,
             });
-            console.log("addDrought", severity);
         },
 
         // Generic shift function for any line
@@ -56,16 +52,13 @@ const createExports = (
 
         setPrice: (price: number) => {
             sendMessage({ price: price - 1 }); //sets the coordinate system to have the origin be at (-1, -1)
-            console.log("setPrice called with:", price);
         },
         setQuantity: (quantity: number) => {
             sendMessage({ quantity: quantity - 1 }); //sets the coordinate system to have the origin be at (-1, -1)
-            console.log("setQuantity called with:", quantity);
         },
 
         draw: () => {
             sendMessage({ type: "draw" });
-            console.log("draw called - plotting current price and quantity");
         },
 
         // Show equilibrium point and helper lines
@@ -77,7 +70,6 @@ const createExports = (
                 price: 0,
                 quantity: 0,
             }); // Will be calculated in component
-            console.log("showHelpers called");
         },
     });
 };
