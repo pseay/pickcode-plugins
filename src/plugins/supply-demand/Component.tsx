@@ -38,7 +38,6 @@ const Component = observer(({ state }: { state: State | undefined }) => {
     };
 
     const drawlines = () => {
-        console.log("drawlines");
         const canvas = canvasRef.current;
         if (!canvas) return;
         const ctx = canvas.getContext("2d");
@@ -48,8 +47,6 @@ const Component = observer(({ state }: { state: State | undefined }) => {
         canvas.height = window.innerHeight;
 
         const draw = () => {
-            console.log("draw", state?.lines);
-
             ctx.clearRect(0, 0, canvas.width, canvas.height);
 
             ctx.translate(canvas.width / 2, canvas.height / 2);
@@ -117,8 +114,6 @@ const Component = observer(({ state }: { state: State | undefined }) => {
             // => defines a function; input is thing on the left of arrow. Output is thing on the right of arrow.
             //forEach is basically calling a forEach loop but saves space
             state?.lines.forEach((line, lineIndex) => {
-                console.log("line drawing here!!");
-
                 if (lineIndex === 0) {
                     ctx.strokeStyle = "blue";
                 } else {
@@ -132,16 +127,10 @@ const Component = observer(({ state }: { state: State | undefined }) => {
             });
 
             // Draw price/quantity points if set via setPrice or setQuantity
-            console.log("State object:", state);
-            console.log("Points count:", state?.pointsCount);
-            console.log("Update trigger:", state?.updateTrigger);
             const pointsArray = state?.points ? Array.from(state.points) : [];
-            console.log("Points array direct:", pointsArray);
             if (state && pointsArray.length > 0) {
-                console.log("Drawing points, count:", pointsArray.length);
                 // Draw each point in the points array
                 pointsArray.forEach((point, index) => {
-                    console.log(`Drawing point ${index}:`, point);
                     const color = "purple"; // purple for setPrice/setQuantity
                     ctx.strokeStyle = color;
                     ctx.lineWidth = 0.02;
@@ -190,7 +179,6 @@ const Component = observer(({ state }: { state: State | undefined }) => {
 
                 if (state?.lines.length == 0) {
                     //default case
-                    console.log("No lines exist, so equilibrium is 0,0");
                     equilibrium = { x: 0, y: 0 };
                 } else {
                     // Calculate equilibrium point
@@ -201,8 +189,6 @@ const Component = observer(({ state }: { state: State | undefined }) => {
                 }
 
                 if (equilibrium) {
-                    console.log("Equilibrium point:", equilibrium);
-
                     // Draw helper lines from axes to equilibrium point
                     ctx.strokeStyle = "green";
                     ctx.lineWidth = 0.02;
@@ -278,21 +264,16 @@ const Component = observer(({ state }: { state: State | undefined }) => {
         draw();
     };
 
-    //useEffect --> {function, array of dependencies --> [state?.lines]}
     useEffect(() => {
-        console.log("useEffect triggered - points:", state?.points);
         drawlines();
     }, [
         state?.lines,
         state?.helper,
         state?.points,
         state?.pointsCount,
-        state?.updateTrigger,
         canvasRef.current?.width,
         canvasRef.current?.height,
-    ]); // Watch lines, helper, points, pointsCount, updateTrigger, and canvas dimensions
-
-    //we only change (or call this function) when the state.lines changes
+    ]);
 
     return (
         <div className="w-full h-full flex items-center justify-center bg-white p-4">

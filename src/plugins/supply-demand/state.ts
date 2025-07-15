@@ -19,9 +19,6 @@ export class State {
     @observable
     accessor points: Point[] = [];
 
-    @observable
-    accessor updateTrigger: number = 0;
-
     // Current pending values (not yet drawn)
     @observable
     accessor currentPrice: number = 0;
@@ -146,7 +143,6 @@ export class State {
                 quantity: this.currentQuantity,
             };
             this.points.push(newPoint);
-            this.updateTrigger++; // Force reactivity
             console.log(
                 "Created point:",
                 newPoint,

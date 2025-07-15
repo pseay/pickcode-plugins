@@ -22,11 +22,11 @@ export type People = {
 };
 
 export type Price = {
-    price: any;
+    price: number;
 };
 
 export type Quantity = {
-    quantity: any;
+    quantity: number;
 };
 
 export type Shift = {
@@ -38,8 +38,8 @@ export type Drought = {
 };
 
 export type Point = {
-    price: any;
-    quantity: any;
+    price: number;
+    quantity: number;
 };
 
 export type DrawCommand = {
