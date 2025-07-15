@@ -19,7 +19,12 @@ for (let i = -0.8; i < 0.8; i+= 0.0001) {
      }
      
 
-
+     for (let i = 0; i < 1; i+= 0.1) {
+          setPrice(i)
+          setQuantity(i)
+          draw()
+          
+        }
 // Cool animation to see the equilibrium point move
 let counter = 0;
 

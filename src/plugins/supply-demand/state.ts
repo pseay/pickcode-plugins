@@ -1,5 +1,13 @@
 import { action, observable, computed } from "mobx";
-import { Line, ShiftCommand, Helper, Price, Quantity, Point } from "./messages";
+import {
+    Line,
+    ShiftCommand,
+    Helper,
+    Price,
+    Quantity,
+    Point,
+    DrawCommand,
+} from "./messages";
 
 export class State {
     @observable
@@ -14,9 +22,12 @@ export class State {
     @observable
     accessor updateTrigger: number = 0;
 
-    // Temporary storage for pending values
-    private pendingPrice: number | null = null;
-    private pendingQuantity: number | null = null;
+    // Current pending values (not yet drawn)
+    @observable
+    accessor currentPrice: number = 0;
+
+    @observable
+    accessor currentQuantity: number = 0;
 
     @computed
     get pointsCount() {
@@ -78,8 +89,10 @@ export class State {
 
     @action
     public onMessage = (
-        message: Line | ShiftCommand | Helper | Price | Quantity
+        message: Line | ShiftCommand | Helper | Price | Quantity | DrawCommand
     ) => {
+        console.log("Received message:", message);
+
         if ("start" in message && "end" in message) {
             // This is a Line
             console.log("Adding line:", message);
@@ -122,52 +135,24 @@ export class State {
             this.helper = message as Helper;
         } else if ("price" in message) {
             console.log("Price message received:", message);
-            this.pendingPrice = message.price;
-
-            // If we have both price and quantity, create a point
-            if (this.pendingPrice !== null && this.pendingQuantity !== null) {
-                const newPoint: Point = {
-                    price: this.pendingPrice,
-                    quantity: this.pendingQuantity,
-                };
-                this.points.push(newPoint);
-                this.updateTrigger++; // Force reactivity
-                console.log(
-                    "Created paired point:",
-                    newPoint,
-                    "Total points:",
-                    this.points.length
-                );
-
-                // Reset pending values
-                this.pendingPrice = null;
-                this.pendingQuantity = null;
-            }
-
-            console.log("Price set to:", message.price);
+            this.currentPrice = message.price;
         } else if ("quantity" in message) {
             console.log("Quantity message received:", message);
-            this.pendingQuantity = message.quantity;
-
-            // If we have both price and quantity, create a point
-            if (this.pendingPrice !== null && this.pendingQuantity !== null) {
-                const newPoint: Point = {
-                    price: this.pendingPrice,
-                    quantity: this.pendingQuantity,
-                };
-                this.points.push(newPoint);
-                this.updateTrigger++; // Force reactivity
-                console.log(
-                    "Created paired point:",
-                    newPoint,
-                    "Total points:",
-                    this.points.length
-                );
-
-                // Reset pending values
-                this.pendingPrice = null;
-                this.pendingQuantity = null;
-            }
+            this.currentQuantity = message.quantity;
+        } else if ("type" in message && message.type === "draw") {
+            console.log("Draw command received:", message);
+            const newPoint: Point = {
+                price: this.currentPrice,
+                quantity: this.currentQuantity,
+            };
+            this.points.push(newPoint);
+            this.updateTrigger++; // Force reactivity
+            console.log(
+                "Created point:",
+                newPoint,
+                "Total points:",
+                this.points.length
+            );
         }
     };
 }

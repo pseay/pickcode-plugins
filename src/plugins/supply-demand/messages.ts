@@ -41,3 +41,7 @@ export type Point = {
     price: any;
     quantity: any;
 };
+
+export type DrawCommand = {
+    type: "draw";
+};

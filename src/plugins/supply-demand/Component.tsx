@@ -173,7 +173,7 @@ const Component = observer(({ state }: { state: State | undefined }) => {
                     drawText(
                         point.quantity + 0.1,
                         point.price + 0.1,
-                        `${label}(${(point.quantity + 1).toFixed(2)}, ${(
+                        `${label}(q:${(point.quantity + 1).toFixed(2)}, p:${(
                             point.price + 1
                         ).toFixed(2)})`,
                         color
@@ -249,16 +249,30 @@ const Component = observer(({ state }: { state: State | undefined }) => {
             ctx.font = "16px Arial";
 
             // Price label (y-axis) - positioned to the left of the graph
-            ctx.fillText("Price", 5, canvas.height / 2);
+            ctx.fillText("Price", 5, canvas.height / 2 - 40);
 
             // Quantity label (x-axis) - positioned below the graph
             ctx.fillText(
                 "Quantity",
-                canvas.width / 2,
-                canvas.height -
-                    Math.max((canvas.height - canvas.width) / 2, 0) -
-                    20
+                canvas.width / 2 - 30,
+                canvas.height - Math.max((canvas.height - canvas.width) / 2, 0)
             );
+
+            // Draw axis tick labels in original coordinate system
+            ctx.font = "12px Arial";
+
+            // Y-axis ticks (price)
+            const yCenter = canvas.height / 2;
+            const xLeft = canvas.width / 2 - overallScalingFactor - 30;
+            ctx.fillText("2", xLeft, yCenter - overallScalingFactor + 5);
+            ctx.fillText("1", xLeft, yCenter + 5);
+
+            // X-axis ticks (quantity)
+            const xCenter = canvas.width / 2;
+            const yBottom = canvas.height / 2 + overallScalingFactor + 20;
+            ctx.fillText("0", xLeft, yBottom - 1.5);
+            ctx.fillText("1", xCenter - 5, yBottom);
+            ctx.fillText("2", xCenter + overallScalingFactor - 10, yBottom);
         };
 
         draw();

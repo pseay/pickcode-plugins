@@ -6,11 +6,20 @@ import {
     Quantity,
     Shift,
     Point,
+    DrawCommand,
 } from "../../messages";
 
 const createExports = (
     sendMessage: (
-        message: Line | ShiftCommand | Helper | Price | Quantity | Shift | Point
+        message:
+            | Line
+            | ShiftCommand
+            | Helper
+            | Price
+            | Quantity
+            | Shift
+            | Point
+            | DrawCommand
     ) => void
 ) => {
     console.log("createExports", sendMessage);
@@ -52,6 +61,11 @@ const createExports = (
         setQuantity: (quantity: number) => {
             sendMessage({ quantity: quantity - 1 }); //sets the coordinate system to have the origin be at (-1, -1)
             console.log("setQuantity called with:", quantity);
+        },
+
+        draw: () => {
+            sendMessage({ type: "draw" });
+            console.log("draw called - plotting current price and quantity");
         },
 
         // Show equilibrium point and helper lines
