@@ -31,6 +31,12 @@ export class State {
         return this.points.length;
     }
 
+    @observable
+    accessor priceSet: boolean = false;
+
+    @observable
+    accessor quantitySet: boolean = false;
+
     public init = () => {};
 
     // Helper function to calculate intersection point of two lines

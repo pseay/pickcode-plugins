@@ -22,11 +22,11 @@ export type People = {
 };
 
 export type Price = {
-    price: number;
+    price: any;
 };
 
 export type Quantity = {
-    quantity: number;
+    quantity: any;
 };
 
 export type Shift = {
