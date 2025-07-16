@@ -1,5 +1,13 @@
-import { action, observable } from "mobx";
-import { Line, ShiftCommand, Helper, Price, Quantity } from "./messages";
+import { action, observable, computed } from "mobx";
+import {
+    Line,
+    ShiftCommand,
+    Helper,
+    Price,
+    Quantity,
+    Point,
+    DrawCommand,
+} from "./messages";
 
 export class State {
     @observable
@@ -9,10 +17,19 @@ export class State {
     accessor helper: Helper | null = null;
 
     @observable
-    accessor price: number = 0;
+    accessor points: Point[] = [];
+
+    // Current pending values (not yet drawn)
+    @observable
+    accessor currentPrice: number = 0;
 
     @observable
-    accessor quantity: number = 0;
+    accessor currentQuantity: number = 0;
+
+    @computed
+    get pointsCount() {
+        return this.points.length;
+    }
 
     @observable
     accessor priceSet: boolean = false;
@@ -69,33 +86,24 @@ export class State {
             };
 
             this.lines = [supplyCurve, demandCurve];
-            console.log("Auto-created base curves:", this.lines);
         }
     };
 
     @action
     public onMessage = (
-        message: Line | ShiftCommand | Helper | Price | Quantity
+        message: Line | ShiftCommand | Helper | Price | Quantity | DrawCommand
     ) => {
         if ("start" in message && "end" in message) {
             // This is a Line
-            console.log("Adding line:", message);
             this.lines.push(message as Line);
         } else if ("type" in message && message.type === "shift") {
             // This is a ShiftCommand
             const shift = message as ShiftCommand;
-            console.log("Shift command:", shift, "Current lines:", this.lines);
 
             // Auto-create base curves if they don't exist
             this.createBaseCurves();
 
             if (this.lines[shift.lineIndex]) {
-                console.log(
-                    "Shifting line",
-                    shift.lineIndex,
-                    "by",
-                    shift.amount
-                );
                 // Create a new array to trigger MobX reactivity
                 const newLines = [...this.lines];
                 newLines[shift.lineIndex] = {
@@ -109,23 +117,21 @@ export class State {
                     },
                 };
                 this.lines = newLines;
-                console.log("New lines after shift:", this.lines);
             } else {
-                console.log("Line index", shift.lineIndex, "doesn't exist");
             }
         } else if ("equilibrium" in message) {
             // This is a Helper message
-            console.log("Helper message received:", message);
             this.helper = message as Helper;
         } else if ("price" in message) {
-            console.log("Price message received:", message);
-            this.price = message.price;
-            this.priceSet = true;
-            console.log("Price set to:", this.price);
+            this.currentPrice = message.price;
         } else if ("quantity" in message) {
-            console.log("Quantity message received:", message);
-            this.quantity = message.quantity;
-            this.quantitySet = true;
+            this.currentQuantity = message.quantity;
+        } else if ("type" in message && message.type === "draw") {
+            const newPoint: Point = {
+                price: this.currentPrice,
+                quantity: this.currentQuantity,
+            };
+            this.points.push(newPoint);
         }
     };
 }

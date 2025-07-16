@@ -38,6 +38,10 @@ export type Drought = {
 };
 
 export type Point = {
-    price: any;
-    quantity: any;
+    price: number;
+    quantity: number;
+};
+
+export type DrawCommand = {
+    type: "draw";
 };
