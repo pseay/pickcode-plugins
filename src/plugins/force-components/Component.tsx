@@ -26,12 +26,15 @@ const Component = observer(({ state }: { state: State | undefined }) => {
             }
 
             ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.lineWidth = 8;
 
             ctx.save();
             ctx.translate(canvas.width / 2, canvas.height / 2);
 
             const scale = Math.min(canvas.width, canvas.height) / 400;
+            let arrowHeadLength = 20;
 
+            // Draw vectors.
             for (const vector of state.vectors) {
                 const { magnitude, angle } = vector;
                 const angleRad = angle * (Math.PI / 180);
@@ -40,42 +43,49 @@ const Component = observer(({ state }: { state: State | undefined }) => {
 
                 ctx.strokeStyle = "blue";
                 ctx.fillStyle = "blue";
+                ctx.save();
                 ctx.beginPath();
                 ctx.moveTo(0, 0);
-                ctx.lineTo(x, y);
+                ctx.rotate(-angleRad);
+                ctx.lineTo(magnitude * scale - arrowHeadLength + 1, 0);
                 ctx.stroke();
+                ctx.restore();
 
                 ctx.save();
                 ctx.translate(x, y);
                 ctx.rotate(-angleRad);
                 ctx.beginPath();
                 ctx.moveTo(0, 0);
-                ctx.lineTo(-10, -5);
-                ctx.lineTo(-10, 5);
+                ctx.lineTo(-arrowHeadLength, -arrowHeadLength / 2);
+                ctx.lineTo(-arrowHeadLength, arrowHeadLength / 2);
                 ctx.closePath();
                 ctx.fill();
                 ctx.restore();
             }
 
+            // Draw components.
+            ctx.lineWidth = 4;
+            arrowHeadLength = 15;
             for (const components of state.components) {
                 const { xComponent, yComponent } = components;
                 const xComponentScaled = xComponent * scale;
                 const yComponentScaled = yComponent * scale;
+                const xDir = Math.sign(xComponent) || 1;
+                const yDir = Math.sign(yComponent) || 1;
 
                 ctx.strokeStyle = "green";
                 ctx.fillStyle = "green";
                 ctx.beginPath();
                 ctx.moveTo(0, 0);
-                ctx.lineTo(xComponentScaled, 0);
+                ctx.lineTo(xComponentScaled - (arrowHeadLength - 1) * xDir, 0);
                 ctx.stroke();
 
                 ctx.save();
                 ctx.translate(xComponentScaled, 0);
                 ctx.beginPath();
                 ctx.moveTo(0, 0);
-                const xDir = Math.sign(xComponent) || 1;
-                ctx.lineTo(xDir * -10, -5);
-                ctx.lineTo(xDir * -10, 5);
+                ctx.lineTo(xDir * -arrowHeadLength, -arrowHeadLength / 2);
+                ctx.lineTo(xDir * -arrowHeadLength, arrowHeadLength / 2);
                 ctx.closePath();
                 ctx.fill();
                 ctx.restore();
@@ -84,7 +94,10 @@ const Component = observer(({ state }: { state: State | undefined }) => {
                 ctx.fillStyle = "red";
                 ctx.beginPath();
                 ctx.moveTo(xComponentScaled, 0);
-                ctx.lineTo(xComponentScaled, -yComponentScaled);
+                ctx.lineTo(
+                    xComponentScaled,
+                    -yComponentScaled + yDir * (arrowHeadLength - 1)
+                );
                 ctx.stroke();
 
                 ctx.save();
@@ -92,9 +105,8 @@ const Component = observer(({ state }: { state: State | undefined }) => {
                 ctx.rotate(-Math.PI / 2);
                 ctx.beginPath();
                 ctx.moveTo(0, 0);
-                const yDir = Math.sign(yComponent) || 1;
-                ctx.lineTo(yDir * -10, -5);
-                ctx.lineTo(yDir * -10, 5);
+                ctx.lineTo(yDir * -arrowHeadLength, -arrowHeadLength / 2);
+                ctx.lineTo(yDir * -arrowHeadLength, arrowHeadLength / 2);
                 ctx.closePath();
                 ctx.fill();
                 ctx.restore();
@@ -111,7 +123,10 @@ const Component = observer(({ state }: { state: State | undefined }) => {
     }, [vectors, components, state]);
 
     return (
-        <div ref={containerRef} style={{ width: "100%", height: "100%", boxSizing: "border-box" }}>
+        <div
+            ref={containerRef}
+            style={{ width: "100%", height: "100%", boxSizing: "border-box" }}
+        >
             <canvas
                 ref={canvasRef}
                 style={{ border: "1px solid black" }}
