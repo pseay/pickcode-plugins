@@ -38,7 +38,6 @@ const Component = observer(({ state }: { state: State | undefined }) => {
     };
 
     const drawlines = () => {
-        console.log("drawlines");
         const canvas = canvasRef.current;
         if (!canvas) return;
         const ctx = canvas.getContext("2d");
@@ -48,8 +47,6 @@ const Component = observer(({ state }: { state: State | undefined }) => {
         canvas.height = window.innerHeight;
 
         const draw = () => {
-            console.log("draw", state?.lines);
-
             ctx.clearRect(0, 0, canvas.width, canvas.height);
 
             ctx.translate(canvas.width / 2, canvas.height / 2);
@@ -57,7 +54,11 @@ const Component = observer(({ state }: { state: State | undefined }) => {
             const margin = 50;
             const xScalingFactor = canvas.width / 2 - margin;
             const yScalingFactor = canvas.height / 2 - margin;
-            ctx.scale(xScalingFactor, -yScalingFactor);
+            const overallScalingFactor = Math.min(
+                xScalingFactor,
+                yScalingFactor
+            );
+            ctx.scale(overallScalingFactor, -overallScalingFactor);
 
             ctx.lineWidth = 0.01;
 
@@ -69,7 +70,7 @@ const Component = observer(({ state }: { state: State | undefined }) => {
             ) => {
                 ctx.save();
                 ctx.translate(x, y); //translates origin to (0.8, 0.8)
-                ctx.scale(1 / xScalingFactor, -1 / yScalingFactor); //scale it back to original scale
+                ctx.scale(1 / overallScalingFactor, -1 / overallScalingFactor); //scale it back to original scale
                 ctx.fillStyle = color;
                 ctx.font = `16px Comic Sans MS`;
                 ctx.fillText(text, 0, 0);
@@ -113,8 +114,6 @@ const Component = observer(({ state }: { state: State | undefined }) => {
             // => defines a function; input is thing on the left of arrow. Output is thing on the right of arrow.
             //forEach is basically calling a forEach loop but saves space
             state?.lines.forEach((line, lineIndex) => {
-                console.log("line drawing here!!");
-
                 if (lineIndex === 0) {
                     ctx.strokeStyle = "blue";
                 } else {
@@ -127,17 +126,11 @@ const Component = observer(({ state }: { state: State | undefined }) => {
                 ctx.stroke();
             });
 
-            // Draw price/quantity point if set via setPrice or setQuantity
-            //if the function is not called, then don't draw anything. Not even the (0,0) point.
-            if (state && state?.priceSet && state?.quantitySet) {
-                // Draw helper lines from axes to price/quantity point
-
-                //if the price and quantity are not undefined, then draw the point
-                if (
-                    (state?.price !== undefined &&
-                        state?.quantity !== undefined) ||
-                    (state?.price == 0 && state?.quantity == 0)
-                ) {
+            // Draw price/quantity points if set via setPrice or setQuantity
+            const pointsArray = state?.points ? Array.from(state.points) : [];
+            if (state && pointsArray.length > 0) {
+                // Draw each point in the points array
+                pointsArray.forEach((point, index) => {
                     const color = "purple"; // purple for setPrice/setQuantity
                     ctx.strokeStyle = color;
                     ctx.lineWidth = 0.02;
@@ -145,36 +138,36 @@ const Component = observer(({ state }: { state: State | undefined }) => {
 
                     // Vertical line from x-axis to point
                     ctx.beginPath();
-                    ctx.moveTo(state.quantity, -1);
-                    ctx.lineTo(state.quantity, state.price);
+                    ctx.moveTo(point.quantity, -1);
+                    ctx.lineTo(point.quantity, point.price);
                     ctx.stroke();
 
                     // Horizontal line from y-axis to point
                     ctx.beginPath();
-                    ctx.moveTo(-1, state.price);
-                    ctx.lineTo(state.quantity, state.price);
+                    ctx.moveTo(-1, point.price);
+                    ctx.lineTo(point.quantity, point.price);
                     ctx.stroke();
 
                     // Draw the point
                     ctx.fillStyle = color;
                     ctx.beginPath();
-                    ctx.arc(state.quantity, state.price, 0.05, 0, Math.PI * 2);
+                    ctx.arc(point.quantity, point.price, 0.05, 0, Math.PI * 2);
                     ctx.fill();
 
                     // Reset line style
                     ctx.setLineDash([]);
 
                     // Draw labels
-                    const label = "C"; // C for setPrice/setQuantity
+                    const label = `C${index + 1}`; // C1, C2, C3, etc.
                     drawText(
-                        state.quantity + 0.1,
-                        state.price + 0.1,
-                        `${label}(${state.quantity.toFixed(
-                            2
-                        )}, ${state.price.toFixed(2)})`,
+                        point.quantity + 0.1,
+                        point.price + 0.1,
+                        `${label}(q:${(point.quantity + 1).toFixed(2)}, p:${(
+                            point.price + 1
+                        ).toFixed(2)})`,
                         color
                     );
-                }
+                });
             }
 
             // Draw helper lines if requested
@@ -186,7 +179,6 @@ const Component = observer(({ state }: { state: State | undefined }) => {
 
                 if (state?.lines.length == 0) {
                     //default case
-                    console.log("No lines exist, so equilibrium is 0,0");
                     equilibrium = { x: 0, y: 0 };
                 } else {
                     // Calculate equilibrium point
@@ -197,8 +189,6 @@ const Component = observer(({ state }: { state: State | undefined }) => {
                 }
 
                 if (equilibrium) {
-                    console.log("Equilibrium point:", equilibrium);
-
                     // Draw helper lines from axes to equilibrium point
                     ctx.strokeStyle = "green";
                     ctx.lineWidth = 0.02;
@@ -245,32 +235,45 @@ const Component = observer(({ state }: { state: State | undefined }) => {
             ctx.font = "16px Arial";
 
             // Price label (y-axis) - positioned to the left of the graph
-            ctx.fillText("Price", 5, canvas.height / 2);
+            ctx.fillText("Price", 5, canvas.height / 2 - 40);
 
             // Quantity label (x-axis) - positioned below the graph
-            ctx.fillText("Quantity", canvas.width / 2, canvas.height - 20);
+            ctx.fillText(
+                "Quantity",
+                canvas.width / 2 - 30,
+                canvas.height - Math.max((canvas.height - canvas.width) / 2, 0)
+            );
+
+            // Draw axis tick labels in original coordinate system
+            ctx.font = "12px Arial";
+
+            // Y-axis ticks (price)
+            const yCenter = canvas.height / 2;
+            const xLeft = canvas.width / 2 - overallScalingFactor - 30;
+            ctx.fillText("2", xLeft, yCenter - overallScalingFactor + 5);
+            ctx.fillText("1", xLeft, yCenter + 5);
+
+            // X-axis ticks (quantity)
+            const xCenter = canvas.width / 2;
+            const yBottom = canvas.height / 2 + overallScalingFactor + 20;
+            ctx.fillText("0", xLeft, yBottom - 1.5);
+            ctx.fillText("1", xCenter - 5, yBottom);
+            ctx.fillText("2", xCenter + overallScalingFactor - 10, yBottom);
         };
 
         draw();
     };
 
-    //useEffect --> {function, array of dependencies --> [state?.lines]}
     useEffect(() => {
-        console.log("state.lines changed", state?.lines);
-        console.log("state.price changed", state?.price);
-        console.log("state.quantity changed", state?.quantity);
-
         drawlines();
     }, [
         state?.lines,
         state?.helper,
-        state?.price,
-        state?.quantity,
-        state?.priceSet,
-        state?.quantitySet,
-    ]); // Watch lines, helper, price, quantity, and set flags
-
-    //we only change (or call this function) when the state.lines changes
+        state?.points,
+        state?.pointsCount,
+        canvasRef.current?.width,
+        canvasRef.current?.height,
+    ]);
 
     return (
         <div className="w-full h-full flex items-center justify-center bg-white p-4">
