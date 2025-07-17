@@ -1,4 +1,4 @@
-const magnitude = 100;
-const angle = 30;
+const magnitude = 200;
+const angle = 40;
 
 drawVector(magnitude, angle);
