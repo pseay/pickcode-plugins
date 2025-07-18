@@ -1,5 +1,5 @@
-import { Force } from "./state";
+import { ForceArrow } from "./state";
 
 export type DrawForceMessage = {
-    forcesToDraw: Force[];
+    forceToDraw: ForceArrow;
 };

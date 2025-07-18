@@ -1,12 +1,13 @@
 import { observer } from "mobx-react-lite";
 import React, { useRef, useEffect, useState } from "react";
-import State, { Force } from "./state";
+import State, { ForceArrow } from "./state";
 
 const Component = observer(({ state }: { state: State | undefined }) => {
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const [scale, setScale] = useState(5); // Pixels per Newton
     const [offsetX, setOffsetX] = useState(0);
     const [offsetY, setOffsetY] = useState(0);
+    const forceArrows = state?.forceArrows || [];
 
     useEffect(() => {
         const canvas = canvasRef.current;
@@ -20,6 +21,10 @@ const Component = observer(({ state }: { state: State | undefined }) => {
             canvas.height = container.clientHeight - 50;
             setOffsetX(canvas.width / 2);
             setOffsetY(canvas.height / 2);
+
+            const newScaleX = canvas.width / 100;
+            const newScaleY = canvas.height / 100;
+            setScale(Math.max(1, Math.min(newScaleX, newScaleY)));
         };
 
         setCanvasDimensions();
@@ -106,20 +111,19 @@ const Component = observer(({ state }: { state: State | undefined }) => {
             ctx.fill();
 
             // Draw forces from student's code
-            state.drawnForces.forEach((force) => {
-                drawForce(ctx, force, "purple");
+            state.forceArrows.forEach((force) => {
+                drawForce(ctx, force);
             });
         };
 
         const drawForce = (
             ctx: CanvasRenderingContext2D,
-            force: Force,
-            color: string
+            force: ForceArrow
         ) => {
             ctx.beginPath();
             ctx.moveTo(offsetX, offsetY);
             ctx.lineTo(offsetX + force.x * scale, offsetY - force.y * scale);
-            ctx.strokeStyle = color;
+            ctx.strokeStyle = force.color;
             ctx.lineWidth = 2;
             ctx.stroke();
 
@@ -133,13 +137,13 @@ const Component = observer(({ state }: { state: State | undefined }) => {
             ctx.lineTo(-10, 5);
             ctx.lineTo(-10, -5);
             ctx.closePath();
-            ctx.fillStyle = color;
+            ctx.fillStyle = force.color;
             ctx.fill();
             ctx.restore();
         };
 
         draw();
-    }, [state?.drawnForces.length, scale, offsetX, offsetY]);
+    }, [state?.forceArrows.length, scale, offsetX, offsetY]);
 
     return (
         <div className="w-full h-full flex flex-col items-center justify-center">

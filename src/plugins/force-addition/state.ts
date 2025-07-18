@@ -1,14 +1,15 @@
 import { action, computed, observable, makeObservable } from "mobx";
 import { DrawForceMessage } from "./messages";
 
-export interface Force {
+export interface ForceArrow {
     x: number;
     y: number;
+    color: string;
 }
 
 export class State {
     @observable
-    accessor drawnForces: Force[] = [];
+    accessor forceArrows: ForceArrow[] = [];
 
     constructor() {
         makeObservable(this);
@@ -16,7 +17,7 @@ export class State {
 
     @action
     public onMessage = (message: DrawForceMessage) => {
-        this.drawnForces.push(...message.forcesToDraw);
+        this.forceArrows.push(message.forceToDraw);
         return true;
     };
 }

@@ -9,12 +9,12 @@ function sumForces(forces) {
 
 const forces = [
   {x: 10, y: 10},
-  {x: 15, y: -5},
-  {x: -5, y: 0}
+  {x: -15, y: -5},
+  {x: -15, y: 5}
 ];
 
 for (let i = 0; i < forces.length; i++) {
-  drawForce(forces[i]);
+  drawForce(forces[i], "black");
 }
 
-drawForce(sumForces(forces));
+drawForce(sumForces(forces), "green");
