@@ -1,9 +1,6 @@
 function sumForces(forces) {
   let netForce = {x: 0, y: 0};
-  for (let i = 0; i < forces.length; i++) {
-    netForce.x += forces[i].x;
-    netForce.y += forces[i].y;
-  }
+  // Write your code in place of this line.
   return netForce;
 }
 
@@ -13,8 +10,8 @@ const forces = [
   {x: -15, y: 5}
 ];
 
-for (let i = 0; i < forces.length; i++) {
-  drawForce(forces[i], "black");
+for (let force of forces) {
+  drawForce(force, "black");
 }
 
 drawForce(sumForces(forces), "green");
