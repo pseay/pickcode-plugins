@@ -1,12 +1,15 @@
-import { ForceFunctionMessage } from "../../messages";
+import { DrawForceMessage } from "../../messages";
 import { Force } from "../../state";
 
 const createExports = (
-    sendMessage: (message: ForceFunctionMessage) => void
+    sendMessage: (message: DrawForceMessage) => void
 ) => {
     return Promise.resolve({
-        run: (sumForces: (forces: Force[]) => Force) => {
-            sendMessage({ sumForces });
+        drawForce: (force: Force) => {
+            sendMessage({ forcesToDraw: [force] });
+        },
+    });
+};
         },
     });
 };

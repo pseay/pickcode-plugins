@@ -52,11 +52,10 @@ const Component = observer(({ state }: { state: State | undefined }) => {
                 drawForce(ctx, force, "black");
             });
 
-            // Draw user force
-            drawForce(ctx, state.userForce, "orange");
-
-            // Draw net force
-            drawForce(ctx, state.netForce, "green");
+            // Draw forces from student's code
+            state.drawnForces.forEach((force) => {
+                drawForce(ctx, force, "purple");
+            });
 
             // Draw legend
             ctx.font = "16px Arial";
@@ -66,6 +65,8 @@ const Component = observer(({ state }: { state: State | undefined }) => {
             ctx.fillText("Your Function's Force", 10, 50);
             ctx.fillStyle = "green";
             ctx.fillText("Net Force", 10, 70);
+            ctx.fillStyle = "purple";
+            ctx.fillText("Student's Drawn Forces", 10, 90);
         };
 
         const drawForce = (
@@ -96,7 +97,14 @@ const Component = observer(({ state }: { state: State | undefined }) => {
         };
 
         draw();
-    }, [state?.forces, state?.netForce, state?.userForce, scale, offsetX, offsetY]);
+    }, [
+        state?.forces,
+        state?.netForce,
+        state?.drawnForces.length,
+        scale,
+        offsetX,
+        offsetY,
+    ]);
 
     const handleAddForce = () => {
         if (state) {
@@ -122,14 +130,18 @@ const Component = observer(({ state }: { state: State | undefined }) => {
                     type="number"
                     placeholder="X component"
                     value={newForce.x}
-                    onChange={(e) => setNewForce({ ...newForce, x: Number(e.target.value) })}
+                    onChange={(e) =>
+                        setNewForce({ ...newForce, x: Number(e.target.value) })
+                    }
                     className="p-2 border rounded"
                 />
                 <input
                     type="number"
                     placeholder="Y component"
                     value={newForce.y}
-                    onChange={(e) => setNewForce({ ...newForce, y: Number(e.target.value) })}
+                    onChange={(e) =>
+                        setNewForce({ ...newForce, y: Number(e.target.value) })
+                    }
                     className="p-2 border rounded ml-2"
                 />
                 <button
