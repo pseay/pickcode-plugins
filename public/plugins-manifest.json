@@ -9,6 +9,11 @@
       "implUrl": "/plugins-code/drag/languages/BasicJS/implementation.js"
     }
   },
+  "force-components": {
+    "BasicJS": {
+      "implUrl": "/plugins-code/force-components/languages/BasicJS/implementation.js"
+    }
+  },
   "marginal-utility": {
     "BasicJS": {
       "implUrl": "/plugins-code/marginal-utility/languages/BasicJS/implementation.js"
