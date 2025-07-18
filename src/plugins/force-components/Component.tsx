@@ -120,17 +120,14 @@ const Component = observer(({ state }: { state: State | undefined }) => {
         draw();
 
         return () => resizeObserver.disconnect();
-    }, [vectors, components, state]);
+    }, [vectors.length, components.length, state]);
 
     return (
         <div
             ref={containerRef}
             style={{ width: "100%", height: "100%", boxSizing: "border-box" }}
         >
-            <canvas
-                ref={canvasRef}
-                style={{ border: "1px solid black" }}
-            ></canvas>
+            <canvas ref={canvasRef}></canvas>
         </div>
     );
 });
