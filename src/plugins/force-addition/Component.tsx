@@ -111,7 +111,7 @@ const Component = observer(({ state }: { state: State | undefined }) => {
             ctx.fill();
 
             // Draw forces from student's code
-            state.forceArrows.forEach((force) => {
+            forceArrows.forEach((force) => {
                 drawForce(ctx, force);
             });
         };
@@ -143,7 +143,7 @@ const Component = observer(({ state }: { state: State | undefined }) => {
         };
 
         draw();
-    }, [state?.forceArrows.length, scale, offsetX, offsetY]);
+    }, [forceArrows.length, scale, offsetX, offsetY]);
 
     return (
         <div className="w-full h-full flex flex-col items-center justify-center">
