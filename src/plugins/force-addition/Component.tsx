@@ -4,10 +4,11 @@ import State, { ForceArrow } from "./state";
 
 const Component = observer(({ state }: { state: State | undefined }) => {
     const canvasRef = useRef<HTMLCanvasElement>(null);
-    const [scale, setScale] = useState(5); // Pixels per Newton
+    const [scale, setScale] = useState(1);
     const [offsetX, setOffsetX] = useState(0);
     const [offsetY, setOffsetY] = useState(0);
     const forceArrows = state?.forceArrows || [];
+    const minSize = 100; // The canvas will be no smaller than minSize x minSize units.
 
     useEffect(() => {
         const canvas = canvasRef.current;
@@ -22,8 +23,8 @@ const Component = observer(({ state }: { state: State | undefined }) => {
             setOffsetX(canvas.width / 2);
             setOffsetY(canvas.height / 2);
 
-            const newScaleX = canvas.width / 100;
-            const newScaleY = canvas.height / 100;
+            const newScaleX = canvas.width / minSize;
+            const newScaleY = canvas.height / minSize;
             setScale(Math.max(1, Math.min(newScaleX, newScaleY)));
         };
 
@@ -97,6 +98,53 @@ const Component = observer(({ state }: { state: State | undefined }) => {
             ctx.font = "12px Arial";
             ctx.fillText("X", canvas.width - 20, offsetY - 10);
             ctx.fillText("Y", offsetX + 10, 20);
+
+            // Draw grid labels
+            const gridSize = 10 * scale;
+
+            // X-axis labels
+            ctx.textAlign = "left";
+            ctx.textBaseline = "middle";
+            for (
+                let x = offsetX + gridSize, i = 10;
+                x < canvas.width;
+                x += gridSize, i += 10
+            ) {
+                ctx.save();
+                ctx.translate(x, offsetY + 10);
+                ctx.rotate(Math.PI / 4);
+                ctx.fillText(i.toString(), 0, 0);
+                ctx.restore();
+            }
+            for (
+                let x = offsetX - gridSize, i = -10;
+                x >= 0;
+                x -= gridSize, i -= 10
+            ) {
+                ctx.save();
+                ctx.translate(x, offsetY + 10);
+                ctx.rotate(Math.PI / 4);
+                ctx.fillText(i.toString(), 0, 0);
+                ctx.restore();
+            }
+
+            // Y-axis labels
+            ctx.textAlign = "center";
+            ctx.textBaseline = "middle";
+            for (
+                let y = offsetY + gridSize, i = -10;
+                y < canvas.height;
+                y += gridSize, i -= 10
+            ) {
+                ctx.fillText(i.toString(), offsetX - 20, y);
+            }
+            for (
+                let y = offsetY - gridSize, i = 10;
+                y >= 0;
+                y -= gridSize, i += 10
+            ) {
+                ctx.fillText(i.toString(), offsetX - 20, y);
+            }
         };
 
         const draw = () => {
