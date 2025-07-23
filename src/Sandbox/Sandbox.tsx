@@ -14,11 +14,11 @@ async function loadImplementationCode(name: string): Promise<string> {
 export const Sandbox = () => {
     const { pluginName } = useParams();
     const iframeRef = useRef<HTMLIFrameElement>(null);
-    const [pyRuntime, setPyRuntime] = useState<PyRuntime>(
-        new PyRuntime((message) => {
+    const [pyRuntime, setPyRuntime] = useState<PyRuntime>(() => {
+        return new PyRuntime((message) => {
             iframeRef.current?.contentWindow?.postMessage(message, "*");
-        })
-    );
+        });
+    });
     const [implementation, setImplementation] = useState<string | undefined>(
         undefined
     );
