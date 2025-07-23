@@ -112,24 +112,6 @@ function pyImportString(str: string) {
     return module;
 }
 
-const postMessageQueue: any[] = [];
-
-function flushQueue() {
-    while (postMessageQueue.length > 0) {
-        let mes = postMessageQueue.shift();
-        self.postMessage({
-            type: "console",
-            messageText: `${mes}\n`,
-        });
-        self.postMessage({
-            type: "module",
-            contents: { forceToDraw: JSON.parse(mes).contents },
-        });
-    }
-}
-
-setInterval(flushQueue, 0); // dispatch messages constantly
-
 // Main window (browser) receives all types of messages here.
 // TODO: We have to combine the implementation and student's python code, and run it with Pyodide.
 const pyHandleMessage = async (message: any) => {
@@ -160,6 +142,9 @@ const pyHandleMessage = async (message: any) => {
                             contents,
                         });
                     }, pySubscribeToMessages)) || {};
+
+                console.log(exports);
+                console.log(Object.keys(exports));
             } catch (e) {
                 // eslint-disable-next-line no-console
                 console.error("error executing module code", e);
@@ -172,16 +157,16 @@ const pyHandleMessage = async (message: any) => {
                 //     pyodide.globals.set(key, value);
                 // }
                 function drawForce(force: any, color: string): void {
-                    postMessageQueue.push(
-                        JSON.stringify({
-                            type: "module",
-                            contents: {
+                    postMessage({
+                        type: "module",
+                        contents: {
+                            forceToDraw: {
                                 x: force.has("x") ? force.get("x") : 0,
                                 y: force.has("y") ? force.get("y") : 0,
                                 color,
                             },
-                        })
-                    );
+                        },
+                    });
                 }
 
                 pyodide.globals.set("drawForce", pyodide.toPy(drawForce));
