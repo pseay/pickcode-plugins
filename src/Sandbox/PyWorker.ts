@@ -10,6 +10,7 @@
 
 // @ts-ignore
 import { loadPyodide } from "https://cdn.jsdelivr.net/pyodide/v0.25.1/full/pyodide.mjs";
+import { isMainThread } from "worker_threads";
 
 let pyodide: any;
 async function load() {
@@ -153,46 +154,52 @@ const pyHandleMessage = async (message: any) => {
 
             // Add the exports to the globals of Python.
             try {
-                // function mapToObjectRecursive(map: any) {
-                //     const obj: any = {};
-                //     for (let [key, value] of map) {
-                //         if (value instanceof Object) {
-                //             obj[key] = mapToObjectRecursive(value); // Recursive call for nested Maps
-                //         } else {
-                //             obj[key] = value;
-                //         }
-                //     }
-                //     return obj;
-                // }
+                /**
+                 * This will turn any proxy or value from the Python form to JavaScript form.
+                 * If not given a proxy, it will return the original input.
+                 * @param arbitraryValue This can be any value from Pyodide
+                 * @returns That value, or a JSON representation of that value if it wasn't a primative type.
+                 */
+                function proxyToJSObj(arbitraryValue: any) {
+                    // If it's not an object, just give it back...
+                    // it should hopefully be a good primative type already.
+                    if (!(arbitraryValue instanceof Object)) {
+                        return arbitraryValue;
+                    }
+
+                    // If we have a Proxy, turn it into JavaScript Objects (dictionaries -> maps)
+                    if ("toJs" in arbitraryValue) {
+                        arbitraryValue = arbitraryValue.toJs();
+                    }
+
+                    // If it's not a map, it should hopefully be a good object already.
+                    if (!(arbitraryValue instanceof Map)) {
+                        return arbitraryValue;
+                    }
+
+                    // Once we have a map, let's type it and recurse on submaps.
+                    let map: Map<any, any> = arbitraryValue;
+
+                    // Convert the Map (potentially map of maps) to JSON.
+                    const obj: any = {};
+                    for (let [key, value] of map) {
+                        if (value instanceof Object) {
+                            obj[key] = proxyToJSObj(value);
+                        } else {
+                            obj[key] = value;
+                        }
+                    }
+                    return obj;
+                }
                 for (let [key, value] of Object.entries(exports)) {
                     console.log({ key, value });
                     pyodide.globals.set(key, (...args: any[]) => {
                         // console.log( "args", args.map((a) => typeof a));
                         let func = value as (...args: any[]) => void;
-                        func(
-                            ...args.map((a) =>
-                                typeof a == "object"
-                                    ? Object.fromEntries(a.toJs())
-                                    : a
-                            )
-                        );
+                        func(...args.map((o) => proxyToJSObj(o)));
                         console.log("called it!");
                     });
                 }
-                // function drawForce(force: any, color: string): void {
-                //     postMessage({
-                //         type: "module",
-                //         contents: {
-                //             forceToDraw: {
-                //                 x: force.has("x") ? force.get("x") : 0,
-                //                 y: force.has("y") ? force.get("y") : 0,
-                //                 color,
-                //             },
-                //         },
-                //     });
-                // }
-
-                // pyodide.globals.set("drawForce", pyodide.toPy(drawForce));
             } catch (e) {
                 if (e instanceof Error) {
                     postMessage({
@@ -237,5 +244,3 @@ self.onmessage = (event) => {
     // void tells typescript we don't care when this async thing returns.
     void pyHandleMessage(event.data);
 };
-
-export {};
