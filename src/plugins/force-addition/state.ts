@@ -17,6 +17,7 @@ export class State {
 
     @action
     public onMessage = (message: DrawForceMessage) => {
+        console.log(message);
         this.forceArrows.push(message.forceToDraw);
         return true;
     };

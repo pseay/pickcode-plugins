@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { useParams } from "react-router";
-import { JSRuntime } from "./JSRuntime";
+import { PyRuntime } from "./PyRuntime";
 import CodeMirror from "@uiw/react-codemirror";
 import { javascript } from "@codemirror/lang-javascript";
 
@@ -13,7 +13,7 @@ async function loadImplementationCode(name: string): Promise<string> {
 
 export const Sandbox = () => {
     const { pluginName } = useParams();
-    const jsRuntimeRef = useRef<JSRuntime>(null);
+    const pyRuntimeRef = useRef<PyRuntime>(null);
     const [implementation, setImplementation] = useState<string | undefined>(
         undefined
     );
@@ -51,7 +51,7 @@ export const Sandbox = () => {
                 <iframe
                     ref={(iframe) => {
                         if (!iframe) return;
-                        jsRuntimeRef.current = new JSRuntime((message) => {
+                        pyRuntimeRef.current = new PyRuntime((message) => {
                             iframe.contentWindow?.postMessage(message, "*");
                         });
                     }}
@@ -62,7 +62,7 @@ export const Sandbox = () => {
             <div
                 className="absolute cursor-pointer right-5 bottom-5 bg-green-500 text-green-50 px-4 py-2 rounded-lg and-i-need-it-now hover:ring-2 hover:ring-green-800"
                 onClick={() => {
-                    jsRuntimeRef.current?.startExecution(
+                    pyRuntimeRef.current?.startExecution(
                         codeText,
                         implementation ?? ""
                     );
