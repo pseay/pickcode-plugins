@@ -13,7 +13,12 @@ async function loadImplementationCode(name: string): Promise<string> {
 
 export const Sandbox = () => {
     const { pluginName } = useParams();
-    const pyRuntimeRef = useRef<PyRuntime>(null);
+    const iframeRef = useRef<HTMLIFrameElement>(null);
+    const [pyRuntime, setPyRuntime] = useState<PyRuntime>(
+        new PyRuntime((message) => {
+            iframeRef.current?.contentWindow?.postMessage(message, "*");
+        })
+    );
     const [implementation, setImplementation] = useState<string | undefined>(
         undefined
     );
@@ -49,12 +54,7 @@ export const Sandbox = () => {
             </div>
             <div className="flex m-2 b-2 flex-col grow">
                 <iframe
-                    ref={(iframe) => {
-                        if (!iframe) return;
-                        pyRuntimeRef.current = new PyRuntime((message) => {
-                            iframe.contentWindow?.postMessage(message, "*");
-                        });
-                    }}
+                    ref={iframeRef}
                     className="flex grow border border-slate-500 rounded-lg"
                     src={`/embed/${pluginName}`}
                 />
@@ -62,10 +62,7 @@ export const Sandbox = () => {
             <div
                 className="absolute cursor-pointer right-5 bottom-5 bg-green-500 text-green-50 px-4 py-2 rounded-lg and-i-need-it-now hover:ring-2 hover:ring-green-800"
                 onClick={() => {
-                    pyRuntimeRef.current?.startExecution(
-                        codeText,
-                        implementation ?? ""
-                    );
+                    pyRuntime.startExecution(codeText, implementation ?? "");
                 }}
             >
                 Play

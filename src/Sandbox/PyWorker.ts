@@ -153,23 +153,46 @@ const pyHandleMessage = async (message: any) => {
 
             // Add the exports to the globals of Python.
             try {
-                // for (let [key, value] of Object.entries(exports)) {
-                //     pyodide.globals.set(key, value);
+                // function mapToObjectRecursive(map: any) {
+                //     const obj: any = {};
+                //     for (let [key, value] of map) {
+                //         if (value instanceof Object) {
+                //             obj[key] = mapToObjectRecursive(value); // Recursive call for nested Maps
+                //         } else {
+                //             obj[key] = value;
+                //         }
+                //     }
+                //     return obj;
                 // }
-                function drawForce(force: any, color: string): void {
-                    postMessage({
-                        type: "module",
-                        contents: {
-                            forceToDraw: {
-                                x: force.has("x") ? force.get("x") : 0,
-                                y: force.has("y") ? force.get("y") : 0,
-                                color,
-                            },
-                        },
+                for (let [key, value] of Object.entries(exports)) {
+                    console.log({ key, value });
+                    pyodide.globals.set(key, (...args: any[]) => {
+                        // console.log( "args", args.map((a) => typeof a));
+                        let func = value as (...args: any[]) => void;
+                        func(
+                            ...args.map((a) =>
+                                typeof a == "object"
+                                    ? Object.fromEntries(a.toJs())
+                                    : a
+                            )
+                        );
+                        console.log("called it!");
                     });
                 }
+                // function drawForce(force: any, color: string): void {
+                //     postMessage({
+                //         type: "module",
+                //         contents: {
+                //             forceToDraw: {
+                //                 x: force.has("x") ? force.get("x") : 0,
+                //                 y: force.has("y") ? force.get("y") : 0,
+                //                 color,
+                //             },
+                //         },
+                //     });
+                // }
 
-                pyodide.globals.set("drawForce", pyodide.toPy(drawForce));
+                // pyodide.globals.set("drawForce", pyodide.toPy(drawForce));
             } catch (e) {
                 if (e instanceof Error) {
                     postMessage({
