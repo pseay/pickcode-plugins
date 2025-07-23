@@ -1,34 +1,19 @@
-// // Add a module declaration for the external pyodide import
-// declare module "https://cdn.jsdelivr.net/pyodide/v0.25.1/full/pyodide.mjs" {
-//     export const loadPyodide: any;
-// }
-
-// // @ts-ignore
-// const { loadPyodide } = await import(
-//     "https://cdn.jsdelivr.net/pyodide/v0.25.1/full/pyodide.mjs"
-// );
-
 // @ts-ignore
 import { loadPyodide } from "https://cdn.jsdelivr.net/pyodide/v0.25.1/full/pyodide.mjs";
-import { isMainThread } from "worker_threads";
 
-let pyodide: any;
-async function load() {
-    pyodide = await loadPyodide();
-    postMessage({ type: "console", messageText: "Loaded!" });
-}
-load();
+// Load pyodide when web worker is made.
+let pyodide: any = loadPyodide();
 
-const pyMessageSubscribers: { [key: symbol]: (message: any) => void } = {};
-const pySubscribeToMessages = (onMessage: any) => {
+const messageSubscribers: { [key: symbol]: (message: any) => void } = {};
+const subscribeToMessages = (onMessage: any) => {
     const key = Symbol();
-    pyMessageSubscribers[key] = onMessage;
+    messageSubscribers[key] = onMessage;
     return () => {
-        delete pyMessageSubscribers[key];
+        delete messageSubscribers[key];
     };
 };
 
-const pyOverrideGlobalFns = (onTermination: () => void) => {
+const overrideGlobalFns = (onTermination: () => void) => {
     const originalSetTimeout = globalThis.setTimeout;
     const originalClearTimeout = globalThis.clearTimeout;
     const originalSetInterval = globalThis.setInterval;
@@ -105,7 +90,7 @@ const pyOverrideGlobalFns = (onTermination: () => void) => {
 };
 
 // Imports the plugin implementation code.
-function pyImportString(str: string) {
+function importString(str: string) {
     const blob = new Blob([str], { type: "text/javascript" });
     const url = URL.createObjectURL(blob);
     const module = import(/* @vite-ignore */ url);
@@ -113,12 +98,53 @@ function pyImportString(str: string) {
     return module;
 }
 
-// Main window (browser) receives all types of messages here.
-// TODO: We have to combine the implementation and student's python code, and run it with Pyodide.
-const pyHandleMessage = async (message: any) => {
+/**
+ * This will turn any proxy or value from the Python form to JavaScript form.
+ * If not given a proxy, it will return the original input.
+ * @param arbitraryValue This can be any value from Pyodide
+ * @returns That value, or a JSON representation of that value if it wasn't a primative type.
+ */
+function proxyToJSObj(arbitraryValue: any) {
+    // If it's not an object, just give it back...
+    // it should hopefully be a good primative type already.
+    if (!(arbitraryValue instanceof Object)) {
+        return arbitraryValue;
+    }
+
+    // If we have a Proxy, turn it into JavaScript Objects (dictionaries -> maps)
+    if ("toJs" in arbitraryValue) {
+        arbitraryValue = arbitraryValue.toJs();
+    }
+
+    // If it's not a map, it should hopefully be a good object already.
+    if (!(arbitraryValue instanceof Map)) {
+        return arbitraryValue;
+    }
+
+    // Once we have a map, let's type it and recurse on submaps.
+    let map: Map<any, any> = arbitraryValue;
+
+    // Convert the Map (potentially map of maps) to JSON.
+    const obj: any = {};
+    for (let [key, value] of map) {
+        if (value instanceof Object) {
+            obj[key] = proxyToJSObj(value);
+        } else {
+            obj[key] = value;
+        }
+    }
+    return obj;
+}
+
+// Main window messages get sent here.
+const handleMessage = async (message: any) => {
     switch (message.type) {
         case "startPy": {
-            const { maybeTerminate } = pyOverrideGlobalFns(() =>
+            // Make sure pyodide has loaded. Wait if it hasn't.
+            // TODO: maybe send a loading indicator here...
+            pyodide = await pyodide;
+
+            const { maybeTerminate } = overrideGlobalFns(() =>
                 postMessage({ type: "finished" })
             );
 
@@ -126,7 +152,7 @@ const pyHandleMessage = async (message: any) => {
             // The main window sends over the module code (implementation) as a string here.
             let moduleCode;
             try {
-                moduleCode = await pyImportString(message.moduleCode);
+                moduleCode = await importString(message.moduleCode);
             } catch (e) {
                 // eslint-disable-next-line no-console
                 console.error("error importing module code", e);
@@ -134,7 +160,7 @@ const pyHandleMessage = async (message: any) => {
             }
 
             // This awaits the promise of the implementation.
-            let exports;
+            let exports: Record<string, (...args: any[]) => any>;
             try {
                 exports =
                     (await moduleCode.default((contents: any) => {
@@ -142,10 +168,7 @@ const pyHandleMessage = async (message: any) => {
                             type: "module",
                             contents,
                         });
-                    }, pySubscribeToMessages)) || {};
-
-                console.log(exports);
-                console.log(Object.keys(exports));
+                    }, subscribeToMessages)) || {};
             } catch (e) {
                 // eslint-disable-next-line no-console
                 console.error("error executing module code", e);
@@ -154,50 +177,16 @@ const pyHandleMessage = async (message: any) => {
 
             // Add the exports to the globals of Python.
             try {
-                /**
-                 * This will turn any proxy or value from the Python form to JavaScript form.
-                 * If not given a proxy, it will return the original input.
-                 * @param arbitraryValue This can be any value from Pyodide
-                 * @returns That value, or a JSON representation of that value if it wasn't a primative type.
-                 */
-                function proxyToJSObj(arbitraryValue: any) {
-                    // If it's not an object, just give it back...
-                    // it should hopefully be a good primative type already.
-                    if (!(arbitraryValue instanceof Object)) {
-                        return arbitraryValue;
-                    }
-
-                    // If we have a Proxy, turn it into JavaScript Objects (dictionaries -> maps)
-                    if ("toJs" in arbitraryValue) {
-                        arbitraryValue = arbitraryValue.toJs();
-                    }
-
-                    // If it's not a map, it should hopefully be a good object already.
-                    if (!(arbitraryValue instanceof Map)) {
-                        return arbitraryValue;
-                    }
-
-                    // Once we have a map, let's type it and recurse on submaps.
-                    let map: Map<any, any> = arbitraryValue;
-
-                    // Convert the Map (potentially map of maps) to JSON.
-                    const obj: any = {};
-                    for (let [key, value] of map) {
-                        if (value instanceof Object) {
-                            obj[key] = proxyToJSObj(value);
-                        } else {
-                            obj[key] = value;
-                        }
-                    }
-                    return obj;
-                }
-                for (let [key, value] of Object.entries(exports)) {
-                    console.log({ key, value });
-                    pyodide.globals.set(key, (...args: any[]) => {
-                        // console.log( "args", args.map((a) => typeof a));
-                        let func = value as (...args: any[]) => void;
-                        func(...args.map((o) => proxyToJSObj(o)));
-                        console.log("called it!");
+                // Register each function from the implementation as a function in Python
+                for (let [
+                    functionName,
+                    functionImplementation,
+                ] of Object.entries(exports)) {
+                    pyodide.globals.set(functionName, (...args: any[]) => {
+                        // Convert arguments from Python-JS Proxies to JS Objects
+                        // (e.g. Nested Dictionaries to Nested JS Objects)
+                        args = args.map(proxyToJSObj);
+                        functionImplementation(...args);
                     });
                 }
             } catch (e) {
@@ -230,17 +219,15 @@ const pyHandleMessage = async (message: any) => {
             break;
         }
         case "module": {
-            Object.getOwnPropertySymbols(pyMessageSubscribers).forEach(
-                (key) => {
-                    pyMessageSubscribers[key](message.contents);
-                }
-            );
+            Object.getOwnPropertySymbols(messageSubscribers).forEach((key) => {
+                messageSubscribers[key](message.contents);
+            });
         }
     }
 };
 
+// Route our onmessage to handle message, ignoring typeless messages.
 self.onmessage = (event) => {
     if (!event.data.type) return;
-    // void tells typescript we don't care when this async thing returns.
-    void pyHandleMessage(event.data);
+    handleMessage(event.data);
 };

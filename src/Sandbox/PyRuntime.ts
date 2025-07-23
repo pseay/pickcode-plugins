@@ -16,7 +16,6 @@ export class PyRuntime {
         // When it receives a message from the web worker, it forwards it to the react component.
         const onMessage = (e: { data: any }) => {
             const messageData = e.data;
-            console.log(messageData);
             switch (messageData.type) {
                 case "module": {
                     this.sendMessageToPlugin(messageData.contents);
