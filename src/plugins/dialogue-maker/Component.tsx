@@ -125,7 +125,7 @@ const Component = observer(({ state }: { state: State | undefined }) => {
                                 animation:
                                     isVisible && mode === "Regular"
                                         ? `fadeIn 0.4s ease ${
-                                              index * 0.15
+                                              index * 0.4 // This is the change
                                           }s forwards`
                                         : undefined,
                                 opacity: isVisible ? 1 : 0,
