@@ -6,6 +6,7 @@ import { Scene } from "./messages";
 const Component = observer(({ state }: { state: State | undefined }) => {
     const scenes = state?.scenes || {};
     const [sceneName, setSceneName] = useState("start");
+    const [updateKey, setUpdateKey] = useState(0);
     const curScene: Scene | undefined = scenes[sceneName];
     const [mode, setMode] = useState<"Regular" | "Developer">("Regular");
     const [displayedText, setDisplayedText] = useState("");
@@ -40,7 +41,6 @@ const Component = observer(({ state }: { state: State | undefined }) => {
             if (count > fullText.length) {
                 clearInterval(typingInterval);
 
-                // --- CHANGE 4: Sequentially reveal choices using chained timeouts ---
                 curScene.choices.forEach((_, index) => {
                     const timeoutId = setTimeout(() => {
                         setVisibleChoiceCount((prevCount) => prevCount + 1);
@@ -55,11 +55,12 @@ const Component = observer(({ state }: { state: State | undefined }) => {
             clearInterval(typingInterval);
             choiceTimeouts.current.forEach(clearTimeout);
         };
-    }, [sceneName, mode, curScene]); // Effect dependencies
+    }, [updateKey, mode, curScene]);
 
-    // A simple function to update the scene. The useEffect handles the rest.
+    // This function now also increments the updateKey to force a re-render.
     function updateSceneTo(newSceneName: string) {
         setSceneName(newSceneName);
+        setUpdateKey((key) => key + 1);
     }
 
     if (!curScene) {
@@ -82,9 +83,37 @@ const Component = observer(({ state }: { state: State | undefined }) => {
         );
     }
 
-    const devLabel = (label: string) => (
-        <span className="text-gray-200 font-mono text-sm">{label}</span>
+    const devSyntax = (label: string, value: string, isString = true) => (
+        <span className="font-mono text-sm">
+            <span className="text-cyan-400">{label}</span>
+            <span className="text-gray-500"> = </span>
+            {isString ? (
+                <span className="text-amber-400">"{value}"</span>
+            ) : (
+                <span className="text-amber-400">{value}</span>
+            )}
+        </span>
     );
+
+    const devModeColors = {
+        bg: "bg-slate-900",
+        text: "text-gray-300",
+        border: "border-slate-700",
+        buttonBg: "bg-slate-800",
+        buttonHover: "hover:bg-slate-700",
+        buttonBorder: "border-slate-600",
+    };
+
+    const regularModeColors = {
+        bg: "bg-[#f9f3e8]",
+        text: "text-[#3b2f2f]",
+        border: "border-[#d6c8a4]",
+        buttonBg: "bg-[#b58e55]",
+        buttonHover: "hover:bg-[#a47d40]",
+        buttonBorder: "border-transparent",
+    };
+
+    const colors = mode === "Developer" ? devModeColors : regularModeColors;
 
     return (
         <div className="relative p-6 max-w-3xl mx-auto">
@@ -108,19 +137,14 @@ const Component = observer(({ state }: { state: State | undefined }) => {
 
             {/* Scene Message */}
             <div
-                className={`p-6 rounded-lg shadow-xl space-y-2 ${
-                    mode === "Developer"
-                        ? "bg-neutral-900 text-white"
-                        : "bg-[#f9f3e8] text-[#3b2f2f] border border-[#d6c8a4]"
-                }`}
+                className={`p-6 rounded-lg shadow-xl space-y-2 border ${colors.bg} ${colors.text} ${colors.border}`}
             >
                 {mode === "Developer" && (
-                    <>
-                        {devLabel(`scene = "${sceneName}"`)}
+                    <div className="mb-2">
+                        {devSyntax("scene", sceneName)}
                         <br />
-                        {devLabel(`${sceneName}.message:`)}
-                        <br />
-                    </>
+                        <span className="text-cyan-400 font-mono text-sm">{`${sceneName}.message:`}</span>
+                    </div>
                 )}
                 <p className="text-lg leading-relaxed font-serif whitespace-pre-wrap">
                     {displayedText}
@@ -134,44 +158,43 @@ const Component = observer(({ state }: { state: State | undefined }) => {
                     .map((choice, index) => {
                         const next = scenes[choice.nextScene];
                         return (
-                            <div key={index}>
-                                <button
-                                    onClick={() =>
-                                        updateSceneTo(choice.nextScene)
-                                    }
-                                    className={`p-4 rounded-md shadow-md w-full text-left transition ${
-                                        mode === "Developer"
-                                            ? "bg-gray-100 text-gray-800"
-                                            : "bg-[#b58e55] text-white hover:bg-[#a47d40]"
-                                    }`}
-                                >
-                                    {mode === "Developer" && (
-                                        <div className="mb-2 bg-gray-100 p-2 rounded text-sm font-mono text-gray-700">
-                                            <div>{`${sceneName}.choices[${index}] =`}</div>
-                                            <div>{`${sceneName}.nextScene = "${choice.nextScene}"`}</div>
-                                            <div className="mt-1 pl-2">
-                                                {next ? (
-                                                    <>
-                                                        <div>{`${choice.nextScene}.message:`}</div>
-                                                        <div className="text-gray-600">
-                                                            {next.message}
-                                                        </div>
-                                                    </>
-                                                ) : (
-                                                    <div className="text-red-600 font-semibold">
-                                                        Error: scene "
-                                                        {choice.nextScene}" not
-                                                        found.
-                                                    </div>
-                                                )}
-                                            </div>
+                            <button
+                                key={index}
+                                onClick={() => updateSceneTo(choice.nextScene)}
+                                className={`p-4 rounded-md shadow-md w-full text-left transition border ${colors.buttonBg} ${colors.text} ${colors.buttonHover} ${colors.buttonBorder}`}
+                            >
+                                {mode === "Developer" && (
+                                    <div
+                                        className={`mb-3 p-3 rounded text-sm font-mono ${devModeColors.bg} text-gray-400 border ${devModeColors.border}`}
+                                    >
+                                        <div className="mb-1">
+                                            {devSyntax(
+                                                `choices[${index}].nextScene`,
+                                                choice.nextScene
+                                            )}
                                         </div>
-                                    )}
-                                    <span className="text-base font-serif">
-                                        {choice.response}
-                                    </span>
-                                </button>
-                            </div>
+                                        <div className="pl-2 border-l-2 border-slate-700">
+                                            {next ? (
+                                                <>
+                                                    <div className="text-cyan-400">{`${choice.nextScene}.message:`}</div>
+                                                    <div className="text-gray-500 italic">
+                                                        "{next.message}"
+                                                    </div>
+                                                </>
+                                            ) : (
+                                                <div className="text-red-500 font-semibold">
+                                                    Error: scene "
+                                                    {choice.nextScene}" not
+                                                    found.
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
+                                )}
+                                <span className="text-base font-serif">
+                                    {choice.response}
+                                </span>
+                            </button>
                         );
                     })}
 
