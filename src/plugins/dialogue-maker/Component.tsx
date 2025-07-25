@@ -1,5 +1,5 @@
 import { observer } from "mobx-react-lite";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import State from "./state";
 import { Scene } from "./messages";
 
@@ -9,38 +9,57 @@ const Component = observer(({ state }: { state: State | undefined }) => {
     const curScene: Scene | undefined = scenes[sceneName];
     const [mode, setMode] = useState<"Regular" | "Developer">("Regular");
     const [displayedText, setDisplayedText] = useState("");
-    const [showChoices, setShowChoices] = useState(false);
-    const [animateTrigger, setAnimateTrigger] = useState(false);
+    const [visibleChoiceCount, setVisibleChoiceCount] = useState(0);
+    const choiceTimeouts = useRef<NodeJS.Timeout[]>([]);
 
     useEffect(() => {
-        if (mode !== "Regular" || !curScene?.message) {
-            setDisplayedText(curScene?.message ?? "");
-            setShowChoices(true);
+        choiceTimeouts.current.forEach(clearTimeout);
+        choiceTimeouts.current = [];
+
+        if (!curScene) return;
+
+        // Reset visibility for the new scene
+        setVisibleChoiceCount(0);
+
+        // In Developer mode, skip all animations and show everything at once.
+        if (mode !== "Regular" || !curScene.message) {
+            setDisplayedText(curScene.message ?? "");
+            setVisibleChoiceCount(curScene.choices.length);
             return;
         }
 
+        // --- Logic for "Typing" Text Effect ---
         setDisplayedText("");
-        setShowChoices(false);
-
         const fullText = curScene.message;
         let count = 0;
-
-        const interval = setInterval(() => {
+        const typingInterval = setInterval(() => {
             count++;
-            if (count > fullText.length) {
-                clearInterval(interval);
-                setTimeout(() => setShowChoices(true), 300);
-                return;
-            }
             setDisplayedText(fullText.substring(0, count));
+
+            // When text is finished, stop the typing and start showing choices.
+            if (count > fullText.length) {
+                clearInterval(typingInterval);
+
+                // --- CHANGE 4: Sequentially reveal choices using chained timeouts ---
+                curScene.choices.forEach((_, index) => {
+                    const timeoutId = setTimeout(() => {
+                        setVisibleChoiceCount((prevCount) => prevCount + 1);
+                    }, 500 * (index + 1)); // Stagger each choice by 500ms
+                    choiceTimeouts.current.push(timeoutId);
+                });
+            }
         }, 20);
 
-        return () => clearInterval(interval);
-    }, [sceneName, mode, curScene, animateTrigger]);
+        // The main cleanup function for the effect
+        return () => {
+            clearInterval(typingInterval);
+            choiceTimeouts.current.forEach(clearTimeout);
+        };
+    }, [sceneName, mode, curScene]); // Effect dependencies
 
+    // A simple function to update the scene. The useEffect handles the rest.
     function updateSceneTo(newSceneName: string) {
         setSceneName(newSceneName);
-        setAnimateTrigger(!animateTrigger);
     }
 
     if (!curScene) {
@@ -103,75 +122,61 @@ const Component = observer(({ state }: { state: State | undefined }) => {
                         <br />
                     </>
                 )}
-                <p
-                    className={`text-lg leading-relaxed font-serif ${
-                        mode === "Regular" ? "whitespace-pre-wrap" : ""
-                    }`}
-                >
+                <p className="text-lg leading-relaxed font-serif whitespace-pre-wrap">
                     {displayedText}
                 </p>
             </div>
 
             {/* Choices */}
             <div className="flex flex-col gap-4 mt-6">
-                {curScene.choices.map((choice, index) => {
-                    const next = scenes[choice.nextScene];
-                    const isVisible = mode === "Developer" || showChoices;
-
-                    return (
-                        <div
-                            key={index}
-                            style={{
-                                animation:
-                                    isVisible && mode === "Regular"
-                                        ? `fadeIn 0.4s ease ${
-                                              index * 0.4 // This is the change
-                                          }s forwards`
-                                        : undefined,
-                                opacity: isVisible ? 1 : 0,
-                            }}
-                            className="opacity-0"
-                        >
-                            <button
-                                onClick={() => updateSceneTo(choice.nextScene)}
-                                className={`p-4 rounded-md shadow-md w-full text-left transition ${
-                                    mode === "Developer"
-                                        ? "bg-gray-100 text-gray-800"
-                                        : "bg-[#b58e55] text-white hover:bg-[#a47d40]"
-                                }`}
-                            >
-                                {mode === "Developer" && (
-                                    <div className="mb-2 bg-gray-100 p-2 rounded text-sm font-mono text-gray-700">
-                                        <div>{`${sceneName}.choices[${index}] =`}</div>
-                                        <div>{`${sceneName}.nextScene = "${choice.nextScene}"`}</div>
-                                        <div className="mt-1 pl-2">
-                                            {next ? (
-                                                <>
-                                                    <div>{`${choice.nextScene}.message:`}</div>
-                                                    <div className="text-gray-600">
-                                                        {next.message}
+                {curScene.choices
+                    .slice(0, visibleChoiceCount)
+                    .map((choice, index) => {
+                        const next = scenes[choice.nextScene];
+                        return (
+                            <div key={index}>
+                                <button
+                                    onClick={() =>
+                                        updateSceneTo(choice.nextScene)
+                                    }
+                                    className={`p-4 rounded-md shadow-md w-full text-left transition ${
+                                        mode === "Developer"
+                                            ? "bg-gray-100 text-gray-800"
+                                            : "bg-[#b58e55] text-white hover:bg-[#a47d40]"
+                                    }`}
+                                >
+                                    {mode === "Developer" && (
+                                        <div className="mb-2 bg-gray-100 p-2 rounded text-sm font-mono text-gray-700">
+                                            <div>{`${sceneName}.choices[${index}] =`}</div>
+                                            <div>{`${sceneName}.nextScene = "${choice.nextScene}"`}</div>
+                                            <div className="mt-1 pl-2">
+                                                {next ? (
+                                                    <>
+                                                        <div>{`${choice.nextScene}.message:`}</div>
+                                                        <div className="text-gray-600">
+                                                            {next.message}
+                                                        </div>
+                                                    </>
+                                                ) : (
+                                                    <div className="text-red-600 font-semibold">
+                                                        Error: scene "
+                                                        {choice.nextScene}" not
+                                                        found.
                                                     </div>
-                                                </>
-                                            ) : (
-                                                <div className="text-red-600 font-semibold">
-                                                    Error: scene "
-                                                    {choice.nextScene}" not
-                                                    found.
-                                                </div>
-                                            )}
+                                                )}
+                                            </div>
                                         </div>
-                                    </div>
-                                )}
-                                <span className="text-base font-serif">
-                                    {choice.response}
-                                </span>
-                            </button>
-                        </div>
-                    );
-                })}
+                                    )}
+                                    <span className="text-base font-serif">
+                                        {choice.response}
+                                    </span>
+                                </button>
+                            </div>
+                        );
+                    })}
 
                 {/* Reset Button */}
-                {showChoices && (
+                {visibleChoiceCount === curScene.choices.length && (
                     <button
                         className="mt-4 bg-gray-700 text-white px-4 py-2 rounded hover:bg-gray-800 self-start"
                         onClick={() => updateSceneTo("start")}
@@ -180,14 +185,6 @@ const Component = observer(({ state }: { state: State | undefined }) => {
                     </button>
                 )}
             </div>
-
-            {/* Animation styles */}
-            <style>{`
-                @keyframes fadeIn {
-                    0% { opacity: 0; transform: translateY(5px); }
-                    100% { opacity: 1; transform: translateY(0); }
-                }
-            `}</style>
         </div>
     );
 });
