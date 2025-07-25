@@ -17,7 +17,7 @@ let scenes = {
         choices: [
             {
                 response: "Bye bye!",
-                nextScene: "sayingGoodbye",
+                nextScene: "end",
             },
         ],
     },
@@ -26,6 +26,10 @@ let scenes = {
         choices: [
             {
                 response: "Yes.",
+                nextScene: "start",
+            },
+            {
+                response: "Nope.",
                 nextScene: "end",
             },
         ],
