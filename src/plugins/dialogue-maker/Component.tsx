@@ -1,5 +1,5 @@
 import { observer } from "mobx-react-lite";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import State from "./state";
 import { Scene } from "./messages";
 
@@ -8,6 +8,40 @@ const Component = observer(({ state }: { state: State | undefined }) => {
     const [sceneName, setSceneName] = useState("start");
     const curScene: Scene | undefined = scenes[sceneName];
     const [mode, setMode] = useState<"Regular" | "Developer">("Regular");
+    const [displayedText, setDisplayedText] = useState("");
+    const [showChoices, setShowChoices] = useState(false);
+    const [animateTrigger, setAnimateTrigger] = useState(false);
+
+    useEffect(() => {
+        if (mode !== "Regular" || !curScene?.message) {
+            setDisplayedText(curScene?.message ?? "");
+            setShowChoices(true);
+            return;
+        }
+
+        setDisplayedText("");
+        setShowChoices(false);
+
+        const fullText = curScene.message;
+        let count = 0;
+
+        const interval = setInterval(() => {
+            count++;
+            if (count > fullText.length) {
+                clearInterval(interval);
+                setTimeout(() => setShowChoices(true), 300);
+                return;
+            }
+            setDisplayedText(fullText.substring(0, count));
+        }, 20);
+
+        return () => clearInterval(interval);
+    }, [sceneName, mode, curScene, animateTrigger]);
+
+    function updateSceneTo(newSceneName: string) {
+        setSceneName(newSceneName);
+        setAnimateTrigger(!animateTrigger);
+    }
 
     if (!curScene) {
         return (
@@ -21,7 +55,7 @@ const Component = observer(({ state }: { state: State | undefined }) => {
                 </p>
                 <button
                     className="bg-blue-600 text-white rounded px-4 py-2 hover:bg-blue-700"
-                    onClick={() => setSceneName("start")}
+                    onClick={() => updateSceneTo("start")}
                 >
                     Go back to "start"
                 </button>
@@ -53,8 +87,14 @@ const Component = observer(({ state }: { state: State | undefined }) => {
                 </select>
             </div>
 
-            {/* Dialogue Box */}
-            <div className="p-6 rounded-lg shadow-xl bg-neutral-900 text-white space-y-2">
+            {/* Scene Message */}
+            <div
+                className={`p-6 rounded-lg shadow-xl space-y-2 ${
+                    mode === "Developer"
+                        ? "bg-neutral-900 text-white"
+                        : "bg-[#f9f3e8] text-[#3b2f2f] border border-[#d6c8a4]"
+                }`}
+            >
                 {mode === "Developer" && (
                     <>
                         {devLabel(`scene = "${sceneName}"`)}
@@ -63,51 +103,91 @@ const Component = observer(({ state }: { state: State | undefined }) => {
                         <br />
                     </>
                 )}
-                <p className="text-lg leading-relaxed">{curScene.message}</p>
+                <p
+                    className={`text-lg leading-relaxed font-serif ${
+                        mode === "Regular" ? "whitespace-pre-wrap" : ""
+                    }`}
+                >
+                    {displayedText}
+                </p>
             </div>
 
             {/* Choices */}
             <div className="flex flex-col gap-4 mt-6">
                 {curScene.choices.map((choice, index) => {
                     const next = scenes[choice.nextScene];
+                    const isVisible = mode === "Developer" || showChoices;
+
                     return (
-                        <button
+                        <div
                             key={index}
-                            onClick={() => setSceneName(choice.nextScene)}
-                            className="p-4 bg-yellow-600 text-white rounded-md hover:bg-yellow-700 text-left shadow-md"
+                            style={{
+                                animation:
+                                    isVisible && mode === "Regular"
+                                        ? `fadeIn 0.4s ease ${
+                                              index * 0.15
+                                          }s forwards`
+                                        : undefined,
+                                opacity: isVisible ? 1 : 0,
+                            }}
+                            className="opacity-0"
                         >
-                            {mode === "Developer" && (
-                                <div className="mb-2 bg-gray-100 p-2 rounded text-sm font-mono text-gray-700">
-                                    <div>{`${sceneName}.choices[${index}].nextScene = "${choice.nextScene}"`}</div>
-                                    <div className="mt-1 pl-2">
-                                        {next ? (
-                                            <>
-                                                <div>{`${choice.nextScene}.message:`}</div>
-                                                <div className="text-gray-600">
-                                                    {next.message}
+                            <button
+                                onClick={() => updateSceneTo(choice.nextScene)}
+                                className={`p-4 rounded-md shadow-md w-full text-left transition ${
+                                    mode === "Developer"
+                                        ? "bg-gray-100 text-gray-800"
+                                        : "bg-[#b58e55] text-white hover:bg-[#a47d40]"
+                                }`}
+                            >
+                                {mode === "Developer" && (
+                                    <div className="mb-2 bg-gray-100 p-2 rounded text-sm font-mono text-gray-700">
+                                        <div>{`${sceneName}.choices[${index}] =`}</div>
+                                        <div>{`${sceneName}.nextScene = "${choice.nextScene}"`}</div>
+                                        <div className="mt-1 pl-2">
+                                            {next ? (
+                                                <>
+                                                    <div>{`${choice.nextScene}.message:`}</div>
+                                                    <div className="text-gray-600">
+                                                        {next.message}
+                                                    </div>
+                                                </>
+                                            ) : (
+                                                <div className="text-red-600 font-semibold">
+                                                    Error: scene "
+                                                    {choice.nextScene}" not
+                                                    found.
                                                 </div>
-                                            </>
-                                        ) : (
-                                            <div className="text-red-600 font-semibold">
-                                                Error: scene "{choice.nextScene}
-                                                " not found.
-                                            </div>
-                                        )}
+                                            )}
+                                        </div>
                                     </div>
-                                    <div>{`${sceneName}.choices[${index}].response =`}</div>
-                                </div>
-                            )}
-                            <span className="text-base">{choice.response}</span>
-                        </button>
+                                )}
+                                <span className="text-base font-serif">
+                                    {choice.response}
+                                </span>
+                            </button>
+                        </div>
                     );
                 })}
-                <button
-                    className="mt-4 bg-gray-700 text-white px-4 py-2 rounded hover:bg-gray-800 self-start"
-                    onClick={() => setSceneName("start")}
-                >
-                    Reset
-                </button>
+
+                {/* Reset Button */}
+                {showChoices && (
+                    <button
+                        className="mt-4 bg-gray-700 text-white px-4 py-2 rounded hover:bg-gray-800 self-start"
+                        onClick={() => updateSceneTo("start")}
+                    >
+                        Reset
+                    </button>
+                )}
             </div>
+
+            {/* Animation styles */}
+            <style>{`
+                @keyframes fadeIn {
+                    0% { opacity: 0; transform: translateY(5px); }
+                    100% { opacity: 1; transform: translateY(0); }
+                }
+            `}</style>
         </div>
     );
 });
