@@ -1,4 +1,4 @@
-scenes = {
+const scenes = {
     start: {
         message: "Hello traveler, what brings you here?",
         choices: [
