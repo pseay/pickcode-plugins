@@ -3,11 +3,11 @@ scenes = {
         message: "Hello traveler, what brings you here?",
         choices: [
             {
-                response: "I'm looking for the magic sword",
+                response: "I'm looking for the magic sword.",
                 nextScene: "swordInfo",
             },
             {
-                response: "Just passing through",
+                response: "Just passing through.",
                 nextScene: "farewell",
             },
         ],
@@ -16,11 +16,11 @@ scenes = {
         message: "Ah, the legendary blade! It's in the dragon's lair.",
         choices: [
             {
-                response: "Tell me more",
+                response: "Tell me more.",
                 nextScene: "dragonDetails",
             },
             {
-                response: "Thanks, goodbye",
+                response: "Thanks, goodbye.",
                 nextScene: "farewell",
             },
         ],
