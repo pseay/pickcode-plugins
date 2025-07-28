@@ -1,38 +1,33 @@
-let scenes = {
+scenes = {
     start: {
-        message: "Hello there, how are you doing?",
+        message: "Hello traveler, what brings you here?",
         choices: [
             {
-                response: "I'm doing great, thank you.",
-                nextScene: "sayingGoodbye",
+                response: "I'm looking for the magic sword",
+                nextScene: "sword_info",
             },
             {
-                response: "Sorry. I didn't catch that. What'd you say?",
-                nextScene: "start",
+                response: "Just passing through",
+                nextScene: "farewell",
             },
         ],
     },
-    sayingGoodbye: {
-        message: "Well, it was great seeing you today!",
+    sword_info: {
+        message: "Ah, the legendary blade! It's in the dragon's lair.",
         choices: [
             {
-                response: "Bye bye!",
-                nextScene: "end",
+                response: "Tell me more",
+                nextScene: "dragon_details",
+            },
+            {
+                response: "Thanks, goodbye",
+                nextScene: "farewell",
             },
         ],
     },
-    end: {
-        message: "Play again?",
-        choices: [
-            {
-                response: "Yes.",
-                nextScene: "start",
-            },
-            {
-                response: "Nope.",
-                nextScene: "end",
-            },
-        ],
+    farewell: {
+        message: "Safe travels, adventurer!",
+        choices: [],
     },
 };
 
