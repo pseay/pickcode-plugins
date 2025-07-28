@@ -4,7 +4,7 @@ scenes = {
         choices: [
             {
                 response: "I'm looking for the magic sword",
-                nextScene: "sword_info",
+                nextScene: "swordInfo",
             },
             {
                 response: "Just passing through",
@@ -12,12 +12,12 @@ scenes = {
             },
         ],
     },
-    sword_info: {
+    swordInfo: {
         message: "Ah, the legendary blade! It's in the dragon's lair.",
         choices: [
             {
                 response: "Tell me more",
-                nextScene: "dragon_details",
+                nextScene: "dragonDetails",
             },
             {
                 response: "Thanks, goodbye",
