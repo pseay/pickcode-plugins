@@ -58,17 +58,37 @@ export class State {
     @action
     public onMessage = (m: FromRuntimeMessage) => {
         if (m.drawLine) {
-            this.drawables.push({ type: "line", ...m.drawLine, color: this.currentColor });
+            this.drawables.push({
+                type: "line",
+                ...m.drawLine,
+                color: this.currentColor,
+            });
         } else if (m.drawPoint) {
-            this.drawables.push({ type: "point", ...m.drawPoint, color: this.currentColor });
+            this.drawables.push({
+                type: "point",
+                ...m.drawPoint,
+                color: this.currentColor,
+            });
         } else if (m.drawCircle) {
-            this.drawables.push({ type: "circle", ...m.drawCircle, color: this.currentColor });
+            this.drawables.push({
+                type: "circle",
+                ...m.drawCircle,
+                color: this.currentColor,
+            });
         } else if (m.drawVector) {
-            this.drawables.push({ type: "vector", ...m.drawVector, color: this.currentColor });
+            this.drawables.push({
+                type: "vector",
+                ...m.drawVector,
+                color: this.currentColor,
+            });
+        } else if (m.drawText) {
+            this.drawables.push({
+                type: "text",
+                ...m.drawText,
+                color: this.currentColor,
+            });
         } else if (m.setColor) {
             this.currentColor = m.setColor.color;
-        } else if (m.drawText) {
-            this.drawables.push({ type: "text", ...m.drawText, color: this.currentColor });
         }
     };
 
