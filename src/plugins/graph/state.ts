@@ -32,7 +32,15 @@ type Vector = {
     color: string;
 };
 
-export type Drawable = Line | Point | Circle | Vector;
+type Text = {
+    type: "text";
+    text: string;
+    x: number;
+    y: number;
+    color: string;
+};
+
+export type Drawable = Line | Point | Circle | Vector | Text;
 
 export class State {
     @observable
@@ -59,6 +67,8 @@ export class State {
             this.drawables.push({ type: "vector", ...m.drawVector, color: this.currentColor });
         } else if (m.setColor) {
             this.currentColor = m.setColor.color;
+        } else if (m.drawText) {
+            this.drawables.push({ type: "text", ...m.drawText, color: this.currentColor });
         }
     };
 

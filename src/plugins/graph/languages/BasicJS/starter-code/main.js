@@ -17,3 +17,7 @@ drawVector(40, -40);
 // Draw another vector
 setColor("orange");
 drawVector(-60, 20);
+
+// Draw some text
+setColor("black");
+drawText("Hello World", -20, 60);

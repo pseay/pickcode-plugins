@@ -206,6 +206,12 @@ const Component = observer(({ state }: { state: State | undefined }) => {
             ctx.stroke();
         };
 
+        const drawText = (text: string, x: number, y: number, color: string) => {
+            ctx.fillStyle = color;
+            ctx.font = "16px Arial";
+            ctx.fillText(text, offsetX + x * scale, offsetY - y * scale);
+        };
+
         const draw = () => {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             drawGrid();
@@ -231,6 +237,9 @@ const Component = observer(({ state }: { state: State | undefined }) => {
                         break;
                     case "vector":
                         drawVector(drawable.x1, drawable.y1, drawable.color);
+                        break;
+                    case "text":
+                        drawText(drawable.text, drawable.x, drawable.y, drawable.color);
                         break;
                 }
             }

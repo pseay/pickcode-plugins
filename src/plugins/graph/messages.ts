@@ -21,6 +21,11 @@ export type FromRuntimeMessage = {
         x1: number;
         y1: number;
     };
+    drawText?: {
+        text: string;
+        x: number;
+        y: number;
+    };
 };
 
 export type ToRuntimeMessage = {};

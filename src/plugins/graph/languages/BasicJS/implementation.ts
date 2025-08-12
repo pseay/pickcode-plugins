@@ -17,6 +17,9 @@ const createExports = (sendMessage: (message: FromRuntimeMessage) => void) => {
         drawVector: (x1: number, y1: number) => {
             sendMessage({ drawVector: { x1, y1 } });
         },
+        drawText: (text: string, x: number, y: number) => {
+            sendMessage({ drawText: { text, x, y } });
+        },
     });
 };
 
